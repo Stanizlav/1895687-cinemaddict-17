@@ -1,7 +1,7 @@
 # Проект «Киноман»
 
 * Студент: [Stanislav Vasilyev](https://up.htmlacademy.ru/ecmascript/17/user/1895687).
-* Наставник: `Неизвестно`.
+* Наставник: [Дмитрий Гуляев](https://htmlacademy.ru/profile/dima).
 
 ---
 
