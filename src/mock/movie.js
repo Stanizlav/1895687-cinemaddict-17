@@ -40,16 +40,16 @@ const POSTERS = [
 
 const COMMENTS_IDS_POOL = (()=>{
   const createId = (element, id) => ++id;
-  const _pool = Array.from({length:COMMENTS_TOTAL}, createId);
+  const identifiers = Array.from({length:COMMENTS_TOTAL}, createId);
   return{
-    getIds(count){
-      const array = [];
-      for(let i = 0; i<count && _pool.length; i++){
-        const pulledElementIndex = generateInteger(0, _pool.length-1);
-        array[i]=_pool[pulledElementIndex];
-        _pool.splice(pulledElementIndex,1);
+    takeIds(count){
+      const pulledIds = [];
+      for(let i = 0; i<count && identifiers.length; i++){
+        const pulledElementIndex = generateInteger(0, identifiers.length-1);
+        pulledIds[i] = identifiers[pulledElementIndex];
+        identifiers.splice(pulledElementIndex, 1);
       }
-      return array;
+      return pulledIds;
     }
   };
 })();
@@ -58,7 +58,7 @@ export const generateMovie = (element, id) => {
   const index = limit(++id, 1, TITLES.length)-1;
   const alreadyWatched = generateInteger(0,1);
   const commentsCount = generateInteger(0, MAX_COMMENTS_COUNT);
-  const comments = COMMENTS_IDS_POOL.getIds(commentsCount);
+  const comments = COMMENTS_IDS_POOL.takeIds(commentsCount);
   return {
     id: id,
     comments,
