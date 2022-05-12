@@ -1,12 +1,15 @@
 import ProfileView from './view/profile-view.js';
-import FilmInfoView from './view/film-info-view.js';
 import { render } from './render.js';
-import FilmsListPresenter from './presenter/films-list-presenter.js';
+import MoviesListPresenter from './presenter/movies-list-presenter.js';
+import MoviesModel from './model/movies-model.js';
+import CommentsModel from './model/comments-model.js';
 
 const siteHeaderElement = document.body.querySelector('header');
 const siteMainElement = document.body.querySelector('main');
-const filmsListPresenter = new FilmsListPresenter();
+const moviesModel = new MoviesModel();
+const commentsModel = new CommentsModel();
+const filmsListPresenter = new MoviesListPresenter();
 
 render(new ProfileView(), siteHeaderElement);
-render(new FilmInfoView(), document.body);
-filmsListPresenter.init(siteMainElement);
+filmsListPresenter.init(siteMainElement, moviesModel, commentsModel);
+
