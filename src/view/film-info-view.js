@@ -191,7 +191,12 @@ export default class FilmInfoView {
     return this.#element;
   }
 
+  get closeButton(){
+    return this.element.querySelector('.film-details__close-btn');
+  }
+
   removeElement(){
+    this.#element.remove();
     this.#element = null;
   }
 }

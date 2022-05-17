@@ -29,12 +29,52 @@ export default class MoviesListPresenter{
   #moviesIdListSortedByComments = null;
   #filmsContainerElement = null;
 
+  #renderFilmCard(movie, container){
+    const filmCardComponent = new FilmCardView(movie);
+    const linkClickingHandler = () => {
+      this.#renderFilmInfo(movie, container);
+    };
+    filmCardComponent.link.addEventListener('click', linkClickingHandler);
+    render(filmCardComponent, container);
+  }
+
+  #renderFilmInfo(movie){
+    const filteredCommentsList = this.#commentsList
+      .filter((element) => movie.comments.some((id) => id === element.id))
+      .sort((a, b) => a.date - b.date);
+
+    const filmInfoComponent = new FilmInfoView(movie, filteredCommentsList);
+    const addedClass = 'hide-overflow';
+
+    const keyDownHandler = (evt) => {
+      if(evt.key === 'Escape'){
+        evt.preventDefault();
+        collapse();
+      }
+    };
+
+    function collapse(){
+      filmInfoComponent.removeElement();
+      document.body.classList.remove(addedClass);
+      document.removeEventListener('keydown', keyDownHandler);
+    }
+
+    const closeButtonClickingHandler = () => collapse();
+
+    filmInfoComponent.closeButton.addEventListener('click', closeButtonClickingHandler);
+
+    document.body.append(filmInfoComponent.element);
+    document.body.classList.add(addedClass);
+    document.addEventListener('keydown', keyDownHandler);
+  }
 
   #fillGroupUpAndWrap(count, contentGroup, maskArray){
     this.#filmsContainerElement = new FilmsContainerView();
-    for(let i = 0; i < count && i < this.#moviesList.length; i++){
+    const limit = count < this.#moviesList.length ? count : this.#moviesList.length;
+    for(let i = 0; i < limit; i++){
       const index = maskArray ? maskArray[i].index : i;
-      render(new FilmCardView(this.#moviesList[index]), this.#filmsContainerElement.element);
+      const movie = this.#moviesList[index];
+      this.#renderFilmCard(movie, this.#filmsContainerElement.element);
     }
     render(this.#filmsContainerElement, contentGroup.element);
     render(contentGroup, this.#contentWrapper.element);
@@ -68,12 +108,5 @@ export default class MoviesListPresenter{
     this.#fillGroupUpAndWrap(MOVIES_EXTRA_COUNT, this.#popularContentGroup, this.#moviesIdListSortedByComments);
 
     render(this.#contentWrapper, this.#containerElement);
-
-    const movie = this.#moviesList[0];
-    const filteredCommentsList = this.#commentsList
-      .filter((element) => movie.comments.some((id) => id === element.id))
-      .sort((a, b) => a.date - b.date);
-
-    render(new FilmInfoView(movie, filteredCommentsList), this.#containerElement);
   }
 }
