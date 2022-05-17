@@ -3,16 +3,20 @@ import { createElement } from '../render.js';
 const createContentWrapperTemplate = () => '<section class="films"></section>';
 
 export default class ContentWrapperView{
-  getTemplate = () => createContentWrapperTemplate();
+  #element = null;
 
-  getElement = () => {
-    if(!this.element){
-      this.element = createElement(this.getTemplate());
+  get template(){
+    return createContentWrapperTemplate();
+  }
+
+  get element(){
+    if(!this.#element){
+      this.#element = createElement(this.template);
     }
-    return this.element;
-  };
+    return this.#element;
+  }
 
-  removeElement = () => {
-    this.element = null;
-  };
+  removeElement() {
+    this.#element = null;
+  }
 }

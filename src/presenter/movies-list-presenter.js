@@ -15,54 +15,65 @@ const TOP_GROUP_CAPTION = 'Top rated';
 const POPULAR_GROUP_CAPTION = 'Most commented';
 
 export default class MoviesListPresenter{
-  mainContentGroup = new ContentGroupView(MAIN_GROUP_CAPTION, false, true);
-  topContentGroup = new ContentGroupView(TOP_GROUP_CAPTION, true);
-  popularContentGroup = new ContentGroupView(POPULAR_GROUP_CAPTION, true);
-  contentWrapper = new ContentWrapperView();
+  #mainContentGroup = new ContentGroupView(MAIN_GROUP_CAPTION, false, true);
+  #topContentGroup = new ContentGroupView(TOP_GROUP_CAPTION, true);
+  #popularContentGroup = new ContentGroupView(POPULAR_GROUP_CAPTION, true);
+  #contentWrapper = new ContentWrapperView();
 
-  fillGroupUpAndWrap(count, contentGroup, maskArray){
-    this.filmsContainerElement = new FilmsContainerView();
-    for(let i = 0; i < count && i < this.moviesList.length; i++){
+  #containerElement = null;
+  #moviesModel = null;
+  #commentsModel = null;
+  #moviesList = null;
+  #commentsList = null;
+  #moviesIdListSortedByRate = null;
+  #moviesIdListSortedByComments = null;
+  #filmsContainerElement = null;
+
+
+  #fillGroupUpAndWrap(count, contentGroup, maskArray){
+    this.#filmsContainerElement = new FilmsContainerView();
+    for(let i = 0; i < count && i < this.#moviesList.length; i++){
       const index = maskArray ? maskArray[i].index : i;
-      render(new FilmCardView(this.moviesList[index]), this.filmsContainerElement.getElement());
+      render(new FilmCardView(this.#moviesList[index]), this.#filmsContainerElement.element);
     }
-    render(this.filmsContainerElement, contentGroup.getElement());
-    render(contentGroup, this.contentWrapper.getElement());
-    this.filmsContainerElement = null;
+    render(this.#filmsContainerElement, contentGroup.element);
+    render(contentGroup, this.#contentWrapper.element);
+    this.#filmsContainerElement = null;
   }
 
   init(containerElement, moviesModel, commentsModel) {
-    this.containerElement = containerElement;
-    this.moviesModel = moviesModel;
-    this.commentsModel = commentsModel;
-    this.moviesList = [...this.moviesModel.movies];
-    this.commentsList = [...this.commentsModel.comments];
+    this.#containerElement = containerElement;
+    this.#moviesModel = moviesModel;
+    this.#commentsModel = commentsModel;
+    this.#moviesList = [...this.#moviesModel.movies];
+    this.#commentsList = [...this.#commentsModel.comments];
 
-    this.listIdSortedByRate = this.moviesList.map(
+    this.#moviesIdListSortedByRate = this.#moviesList.map(
       (element, index) => ({index, rating : element.filmInfo.totalRating})
     );
-    this.listIdSortedByRate = this.listIdSortedByRate.sort((a, b) => b.rating - a.rating);
+    this.#moviesIdListSortedByRate = this.#moviesIdListSortedByRate.sort((a, b) => b.rating - a.rating);
 
-    this.listIdSortedByComments = this.moviesList.map(
+    this.#moviesIdListSortedByComments = this.#moviesList.map(
       (element, index) => ({index, commentsCount: element.comments.length})
     );
-    this.listIdSortedByComments = this.listIdSortedByComments.sort((a, b) => b.commentsCount - a.commentsCount);
+    this.#moviesIdListSortedByComments = this.#moviesIdListSortedByComments.sort((a, b) => b.commentsCount - a.commentsCount);
 
-    render(new MenuView(), this.containerElement);
-    render(new SorterView(),this.containerElement);
+    render(new MenuView(), this.#containerElement);
+    render(new SorterView(),this.#containerElement);
 
-    this.fillGroupUpAndWrap(MOVIES_COUNT, this.mainContentGroup);
-    render(new ShowMoreButtonView(), this.mainContentGroup.getElement());
+    this.#fillGroupUpAndWrap(MOVIES_COUNT, this.#mainContentGroup);
+    render(new ShowMoreButtonView(), this.#mainContentGroup.element);
 
-    this.fillGroupUpAndWrap(MOVIES_EXTRA_COUNT, this.topContentGroup, this.listIdSortedByRate);
-    this.fillGroupUpAndWrap(MOVIES_EXTRA_COUNT, this.popularContentGroup, this.listIdSortedByComments);
+    this.#fillGroupUpAndWrap(MOVIES_EXTRA_COUNT, this.#topContentGroup, this.#moviesIdListSortedByRate);
+    this.#fillGroupUpAndWrap(MOVIES_EXTRA_COUNT, this.#popularContentGroup, this.#moviesIdListSortedByComments);
 
-    render(this.contentWrapper, this.containerElement);
-    const movie = this.moviesList[0];
-    const filteredCommentsList = this.commentsList
+    render(this.#contentWrapper, this.#containerElement);
+
+    const movie = this.#moviesList[0];
+    const filteredCommentsList = this.#commentsList
       .filter((element) => movie.comments.some((id) => id === element.id))
       .sort((a, b) => a.date - b.date);
 
-    render(new FilmInfoView(movie, filteredCommentsList), this.containerElement);
+    render(new FilmInfoView(movie, filteredCommentsList), this.#containerElement);
   }
 }
