@@ -7,16 +7,20 @@ const createProfileTemplate = () =>
   </section>`;
 
 export default class ProfileView {
-  getTemplatee = () => createProfileTemplate();
+  #element = null;
 
-  getElement = () => {
-    if(!this.element){
-      this.element = createElement(this.getTemplatee());
+  get template(){
+    return createProfileTemplate();
+  }
+
+  get element(){
+    if(!this.#element){
+      this.#element = createElement(this.template);
     }
-    return this.element;
-  };
+    return this.#element;
+  }
 
-  removeElement = () => {
-    this.element = null;
-  };
+  removeElement(){
+    this.#element = null;
+  }
 }

@@ -46,7 +46,7 @@ const COMMENTS_IDS_POOL = (()=>{
       const pulledIds = [];
       for(let i = 0; i<count && identifiers.length; i++){
         const pulledElementIndex = generateInteger(0, identifiers.length-1);
-        pulledIds[i] = identifiers[pulledElementIndex];
+        pulledIds.push(identifiers[pulledElementIndex]);
         identifiers.splice(pulledElementIndex, 1);
       }
       return pulledIds;

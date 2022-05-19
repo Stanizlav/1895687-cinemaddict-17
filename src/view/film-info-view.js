@@ -171,21 +171,32 @@ const createFilmInfoTemplate = (movie, commentsList) =>{
   );
 };
 export default class FilmInfoView {
+  #element = null;
+  #movie = null;
+  #commentsList = null;
+
   constructor(movie, commentsList){
-    this.movie = movie;
-    this.commentsList = commentsList;
+    this.#movie = movie;
+    this.#commentsList = commentsList;
   }
 
-  getTemplatee = () => createFilmInfoTemplate(this.movie, this.commentsList);
+  get template(){
+    return createFilmInfoTemplate(this.#movie, this.#commentsList);
+  }
 
-  getElement = () => {
-    if(!this.element){
-      this.element = createElement(this.getTemplatee());
+  get element(){
+    if(!this.#element){
+      this.#element = createElement(this.template);
     }
-    return this.element;
-  };
+    return this.#element;
+  }
 
-  removeElement = () => {
-    this.element = null;
-  };
+  get closeButton(){
+    return this.element.querySelector('.film-details__close-btn');
+  }
+
+  removeElement(){
+    this.#element.remove();
+    this.#element = null;
+  }
 }
