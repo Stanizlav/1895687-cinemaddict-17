@@ -1,7 +1,6 @@
 import { render } from '../render.js';
 import MenuView from '../view/menu-view.js';
 import SorterView from '../view/sorter-view.js';
-import FilmsContainerView from '../view/films-container-view';
 import FilmCardView from '../view/film-card-view.js';
 import ShowMoreButtonView from '../view/show-more-button-view';
 import ContentGroupView from '../view/content-group-view.js';
@@ -11,14 +10,17 @@ import FilmInfoView from '../view/film-info-view.js';
 const MOVIES_COUNT = 5;
 const MOVIES_EXTRA_COUNT = 2;
 const MAIN_GROUP_CAPTION = 'All movies. Upcoming';
+const EMPTY_MAIN_GROUP_CAPTION = 'There are no movies in our database';
 const TOP_GROUP_CAPTION = 'Top rated';
 const POPULAR_GROUP_CAPTION = 'Most commented';
 
 export default class MoviesListPresenter{
-  #mainContentGroup = new ContentGroupView(MAIN_GROUP_CAPTION, false, true);
-  #topContentGroup = new ContentGroupView(TOP_GROUP_CAPTION, true);
-  #popularContentGroup = new ContentGroupView(POPULAR_GROUP_CAPTION, true);
-  #contentWrapper = new ContentWrapperView();
+  #mainContentGroupComponent = new ContentGroupView(MAIN_GROUP_CAPTION, false, true);
+  #topContentGroupComponent = new ContentGroupView(TOP_GROUP_CAPTION, true);
+  #popularContentGroupComponent = new ContentGroupView(POPULAR_GROUP_CAPTION, true);
+  #contentWrapperComponent = new ContentWrapperView();
+  #showMoreButtonComponent = new ShowMoreButtonView();
+  #moviesShownCount = 0;
 
   #containerElement = null;
   #moviesModel = null;
@@ -27,7 +29,6 @@ export default class MoviesListPresenter{
   #commentsList = null;
   #moviesIdListSortedByRate = null;
   #moviesIdListSortedByComments = null;
-  #filmsContainerElement = null;
 
   #renderFilmCard(movie, container){
     const filmCardComponent = new FilmCardView(movie);
@@ -44,7 +45,7 @@ export default class MoviesListPresenter{
       .sort((a, b) => a.date - b.date);
 
     const filmInfoComponent = new FilmInfoView(movie, filteredCommentsList);
-    const addedClass = 'hide-overflow';
+    const ADDED_CLASS = 'hide-overflow';
 
     const keyDownHandler = (evt) => {
       if(evt.key === 'Escape'){
@@ -55,7 +56,7 @@ export default class MoviesListPresenter{
 
     function collapse(){
       filmInfoComponent.removeElement();
-      document.body.classList.remove(addedClass);
+      document.body.classList.remove(ADDED_CLASS);
       document.removeEventListener('keydown', keyDownHandler);
     }
 
@@ -64,21 +65,55 @@ export default class MoviesListPresenter{
     filmInfoComponent.closeButton.addEventListener('click', closeButtonClickingHandler);
 
     document.body.append(filmInfoComponent.element);
-    document.body.classList.add(addedClass);
+    document.body.classList.add(ADDED_CLASS);
     document.addEventListener('keydown', keyDownHandler);
   }
 
-  #fillGroupUpAndWrap(count, contentGroup, maskArray){
-    this.#filmsContainerElement = new FilmsContainerView();
-    const limit = count < this.#moviesList.length ? count : this.#moviesList.length;
-    for(let i = 0; i < limit; i++){
+  #fillGroup(start, count, contentGroup, maskArray){
+    const limit = start + count < this.#moviesList.length ?
+      start + count :
+      this.#moviesList.length;
+
+    for(let i = start; i < limit; i++){
       const index = maskArray ? maskArray[i].index : i;
       const movie = this.#moviesList[index];
-      this.#renderFilmCard(movie, this.#filmsContainerElement.element);
+      this.#renderFilmCard(movie, contentGroup.collection);
     }
-    render(this.#filmsContainerElement, contentGroup.element);
-    render(contentGroup, this.#contentWrapper.element);
-    this.#filmsContainerElement = null;
+    return limit - start;
+  }
+
+  #renderShowMoreButton(){
+    const showMoreButtonClickingHandler = () => {
+      this.#moviesShownCount += this.#fillGroup(this.#moviesShownCount, MOVIES_COUNT, this.#mainContentGroupComponent);
+      if(this.#moviesShownCount === this.#moviesList.length){
+        this.#showMoreButtonComponent.hide();
+      }
+    };
+
+    render(this.#showMoreButtonComponent, this.#mainContentGroupComponent.element);
+    this.#showMoreButtonComponent.element.addEventListener('click', showMoreButtonClickingHandler);
+  }
+
+  #renderComponents(){
+
+    render(new MenuView(), this.#containerElement);
+    render(this.#mainContentGroupComponent, this.#contentWrapperComponent.element);
+    if(this.#moviesList.length){
+      render(new SorterView(),this.#containerElement);
+      this.#moviesShownCount += this.#fillGroup(0, MOVIES_COUNT, this.#mainContentGroupComponent);
+      this.#fillGroup(0, MOVIES_EXTRA_COUNT, this.#topContentGroupComponent, this.#moviesIdListSortedByRate);
+      this.#fillGroup(0, MOVIES_EXTRA_COUNT, this.#popularContentGroupComponent, this.#moviesIdListSortedByComments);
+      if(this.#moviesList.length > this.#moviesShownCount){
+        this.#renderShowMoreButton();
+      }
+      render(this.#topContentGroupComponent, this.#contentWrapperComponent.element);
+      render(this.#popularContentGroupComponent, this.#contentWrapperComponent.element);
+    }
+    else{
+      this.#mainContentGroupComponent.caption = EMPTY_MAIN_GROUP_CAPTION;
+      this.#mainContentGroupComponent.revealCaption();
+    }
+    render(this.#contentWrapperComponent, this.#containerElement);
   }
 
   init(containerElement, moviesModel, commentsModel) {
@@ -87,26 +122,17 @@ export default class MoviesListPresenter{
     this.#commentsModel = commentsModel;
     this.#moviesList = [...this.#moviesModel.movies];
     this.#commentsList = [...this.#commentsModel.comments];
+    if(this.#moviesList.length){
+      this.#moviesIdListSortedByRate = this.#moviesList.map(
+        (element, index) => ({index, rating : element.filmInfo.totalRating})
+      );
+      this.#moviesIdListSortedByRate = this.#moviesIdListSortedByRate.sort((a, b) => b.rating - a.rating);
 
-    this.#moviesIdListSortedByRate = this.#moviesList.map(
-      (element, index) => ({index, rating : element.filmInfo.totalRating})
-    );
-    this.#moviesIdListSortedByRate = this.#moviesIdListSortedByRate.sort((a, b) => b.rating - a.rating);
-
-    this.#moviesIdListSortedByComments = this.#moviesList.map(
-      (element, index) => ({index, commentsCount: element.comments.length})
-    );
-    this.#moviesIdListSortedByComments = this.#moviesIdListSortedByComments.sort((a, b) => b.commentsCount - a.commentsCount);
-
-    render(new MenuView(), this.#containerElement);
-    render(new SorterView(),this.#containerElement);
-
-    this.#fillGroupUpAndWrap(MOVIES_COUNT, this.#mainContentGroup);
-    render(new ShowMoreButtonView(), this.#mainContentGroup.element);
-
-    this.#fillGroupUpAndWrap(MOVIES_EXTRA_COUNT, this.#topContentGroup, this.#moviesIdListSortedByRate);
-    this.#fillGroupUpAndWrap(MOVIES_EXTRA_COUNT, this.#popularContentGroup, this.#moviesIdListSortedByComments);
-
-    render(this.#contentWrapper, this.#containerElement);
+      this.#moviesIdListSortedByComments = this.#moviesList.map(
+        (element, index) => ({index, commentsCount: element.comments.length})
+      );
+      this.#moviesIdListSortedByComments = this.#moviesIdListSortedByComments.sort((a, b) => b.commentsCount - a.commentsCount);
+    }
+    this.#renderComponents();
   }
 }

@@ -1,4 +1,4 @@
-import { generateInteger, generateArrayFrom, limit, generateDate } from '../utils.js';
+import { generateInteger, generateArrayFrom, generateDate, cutWithPeriod } from '../utils.js';
 
 const COMMENTS_TOTAL = 50;
 const MAX_SENTENCES_COUNT = 5;
@@ -55,7 +55,7 @@ const COMMENTS_IDS_POOL = (()=>{
 })();
 
 export const generateMovie = (element, id) => {
-  const index = limit(++id, 1, TITLES.length)-1;
+  const index = cutWithPeriod(++id, 1, TITLES.length)-1;
   const alreadyWatched = generateInteger(0,1);
   const commentsCount = generateInteger(0, MAX_COMMENTS_COUNT);
   const comments = COMMENTS_IDS_POOL.takeIds(commentsCount);
