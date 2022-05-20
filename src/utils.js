@@ -28,12 +28,15 @@ const generateArrayFrom = (count, donor) => {
   return array;
 };
 
-const limit = (value, min, max) =>{
-  if(value < min) {
-    return min;
+const cutWithPeriod = (value, min, max) =>{
+  const minimum = Math.min(min, max);
+  const maximum = Math.max(min, max);
+  const period = maximum - minimum + 1;
+  if(value < minimum) {
+    return maximum - (maximum - value) % period;
   }
-  if(value > max){
-    return value % max;
+  if(value > maximum){
+    return (value - minimum) % period + minimum;
   }
   return value;
 };
@@ -52,7 +55,7 @@ export {
   generateInteger,
   getAnElement,
   generateArrayFrom,
-  limit,
+  cutWithPeriod,
   getYear,
   getHumanisedDate,
   getCommentDate,
