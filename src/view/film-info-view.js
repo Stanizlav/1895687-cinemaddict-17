@@ -1,4 +1,4 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 import { convertDuration, getCommentDate, getHumanisedDate } from '../utils.js';
 
 const createGenreTemplate = (genre) => `<span class="film-details__genre">${ genre }</span>`;
@@ -170,12 +170,12 @@ const createFilmInfoTemplate = (movie, commentsList) =>{
     </section>`
   );
 };
-export default class FilmInfoView {
-  #element = null;
+export default class FilmInfoView extends AbstractView{
   #movie = null;
   #commentsList = null;
 
   constructor(movie, commentsList){
+    super();
     this.#movie = movie;
     this.#commentsList = commentsList;
   }
@@ -184,19 +184,7 @@ export default class FilmInfoView {
     return createFilmInfoTemplate(this.#movie, this.#commentsList);
   }
 
-  get element(){
-    if(!this.#element){
-      this.#element = createElement(this.template);
-    }
-    return this.#element;
-  }
-
   get closeButton(){
     return this.element.querySelector('.film-details__close-btn');
-  }
-
-  removeElement(){
-    this.#element.remove();
-    this.#element = null;
   }
 }

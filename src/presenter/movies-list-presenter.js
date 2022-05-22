@@ -55,7 +55,7 @@ export default class MoviesListPresenter{
     };
 
     function collapse(){
-      filmInfoComponent.removeElement();
+      filmInfoComponent.element.remove();
       document.body.classList.remove(ADDED_CLASS);
       document.removeEventListener('keydown', keyDownHandler);
     }
