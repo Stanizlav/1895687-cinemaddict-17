@@ -1,55 +1,42 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 import FilmsContainerView from './films-container-view.js';
+import CaptionView from './caption-view.js';
 
-const CLASS_HIDDEN = 'visually-hidden';
 const CLASS_EXTRA = 'films-list--extra';
 
-const createContentGroupTemplate = (isExtra) =>
-  `<section class="films-list ${ isExtra ? CLASS_EXTRA : '' }"></section>`;
+const createContentGroupTemplate = () => '<section class="films-list"></section>';
 
-const createCaption = (text, isHidden) =>
-  `<h2 class="films-list__title ${ isHidden ? CLASS_HIDDEN : '' }">${text}</h2>`;
-
-export default class ContentGroupView {
-  #element = null;
-  #captionElement = null;
+export default class ContentGroupView extends AbstractView{
+  #captionComponent = null;
   #filmsContainerComponent = null;
+
+  constructor(caption, isExtra, isCaptionHidden){
+    super();
+    if(isExtra){
+      this.element.classList.add(CLASS_EXTRA);
+    }
+    this.#captionComponent = new CaptionView(caption, isCaptionHidden);
+    this.element.prepend(this.#captionComponent.element);
+    this.#filmsContainerComponent = new FilmsContainerView();
+    this.element.append(this.#filmsContainerComponent.element);
+  }
 
   get template(){
     return createContentGroupTemplate();
   }
 
-  constructor(caption, isExtra, isCaptionHidden){
-    this.#element = createElement(createContentGroupTemplate(isExtra));
-    this.#captionElement = createElement(createCaption(caption, isCaptionHidden));
-    this.#element.prepend(this.#captionElement);
-    this.#filmsContainerComponent = new FilmsContainerView();
-    this.#element.append(this.#filmsContainerComponent.element);
-  }
-
-  get element(){
-    if(!this.#element){
-      this.#element = createElement(this.template);
-    }
-    return this.#element;
-  }
-
-  get collection(){
+  get filmsContainer(){
     return this.#filmsContainerComponent.element;
   }
 
-  get caption() { return this.#captionElement.textContent; }
-  set caption(value) { this.#captionElement.textContent = value; }
+  get caption() { return this.#captionComponent.text; }
+  set caption(value) { this.#captionComponent.text = value; }
 
   hideCaption(){
-    this.#captionElement.classList.add(CLASS_HIDDEN);
+    this.#captionComponent.hide();
   }
 
   revealCaption(){
-    this.#captionElement.classList.remove(CLASS_HIDDEN);
-  }
-
-  removeElement(){
-    this.#element = null;
+    this.#captionComponent.reveal();
   }
 }

@@ -1,4 +1,4 @@
-import { render } from '../render.js';
+import { render } from '../framework/render.js';
 import MenuView from '../view/menu-view.js';
 import SorterView from '../view/sorter-view.js';
 import FilmCardView from '../view/film-card-view.js';
@@ -32,10 +32,10 @@ export default class MoviesListPresenter{
 
   #renderFilmCard(movie, container){
     const filmCardComponent = new FilmCardView(movie);
-    const linkClickingHandler = () => {
+    const linkClickHandler = () => {
       this.#renderFilmInfo(movie, container);
     };
-    filmCardComponent.link.addEventListener('click', linkClickingHandler);
+    filmCardComponent.setLinkClickHandler(linkClickHandler);
     render(filmCardComponent, container);
   }
 
@@ -55,14 +55,14 @@ export default class MoviesListPresenter{
     };
 
     function collapse(){
-      filmInfoComponent.removeElement();
+      filmInfoComponent.element.remove();
       document.body.classList.remove(ADDED_CLASS);
       document.removeEventListener('keydown', keyDownHandler);
     }
 
-    const closeButtonClickingHandler = () => collapse();
+    const closeButtonClickHandler = () => collapse();
 
-    filmInfoComponent.closeButton.addEventListener('click', closeButtonClickingHandler);
+    filmInfoComponent.setCloseButtonClickHandler(closeButtonClickHandler);
 
     document.body.append(filmInfoComponent.element);
     document.body.classList.add(ADDED_CLASS);
@@ -77,7 +77,7 @@ export default class MoviesListPresenter{
     for(let i = start; i < limit; i++){
       const index = maskArray ? maskArray[i].index : i;
       const movie = this.#moviesList[index];
-      this.#renderFilmCard(movie, contentGroup.collection);
+      this.#renderFilmCard(movie, contentGroup.filmsContainer);
     }
     return limit - start;
   }
@@ -89,9 +89,8 @@ export default class MoviesListPresenter{
         this.#showMoreButtonComponent.hide();
       }
     };
-
     render(this.#showMoreButtonComponent, this.#mainContentGroupComponent.element);
-    this.#showMoreButtonComponent.element.addEventListener('click', showMoreButtonClickingHandler);
+    this.#showMoreButtonComponent.setClickHandler(showMoreButtonClickingHandler);
   }
 
   #renderComponents(){
