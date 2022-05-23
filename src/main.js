@@ -8,8 +8,8 @@ const siteHeaderElement = document.body.querySelector('header');
 const siteMainElement = document.body.querySelector('main');
 const moviesModel = new MoviesModel();
 const commentsModel = new CommentsModel();
-const filmsListPresenter = new MoviesListPresenter();
+const filmsListPresenter = new MoviesListPresenter(siteMainElement, moviesModel, commentsModel);
 
 render(new ProfileView(), siteHeaderElement);
-filmsListPresenter.init(siteMainElement, moviesModel, commentsModel);
+filmsListPresenter.init();
 

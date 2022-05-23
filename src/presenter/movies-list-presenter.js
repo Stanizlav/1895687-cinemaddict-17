@@ -1,13 +1,12 @@
 import { render } from '../framework/render.js';
+import MoviePresenter from './movie-presenter.js';
 import MenuView from '../view/menu-view.js';
 import SorterView from '../view/sorter-view.js';
-import FilmCardView from '../view/film-card-view.js';
 import ShowMoreButtonView from '../view/show-more-button-view';
 import ContentGroupView from '../view/content-group-view.js';
 import ContentWrapperView from '../view/content-wrapper-view.js';
-import FilmInfoView from '../view/film-info-view.js';
 
-const MOVIES_COUNT = 5;
+const MOVIES_COUNT_PER_PORTION = 5;
 const MOVIES_EXTRA_COUNT = 2;
 const MAIN_GROUP_CAPTION = 'All movies. Upcoming';
 const EMPTY_MAIN_GROUP_CAPTION = 'There are no movies in our database';
@@ -30,76 +29,60 @@ export default class MoviesListPresenter{
   #moviesIdListSortedByRate = null;
   #moviesIdListSortedByComments = null;
 
-  #renderFilmCard(movie, container){
-    const filmCardComponent = new FilmCardView(movie);
-    const linkClickHandler = () => {
-      this.#renderFilmInfo(movie, container);
-    };
-    filmCardComponent.setLinkClickHandler(linkClickHandler);
-    render(filmCardComponent, container);
+  constructor(containerElement, moviesModel, commentsModel){
+    this.#containerElement = containerElement;
+    this.#moviesModel = moviesModel;
+    this.#commentsModel = commentsModel;
   }
 
-  #renderFilmInfo(movie){
-    const filteredCommentsList = this.#commentsList
-      .filter((element) => movie.comments.some((id) => id === element.id))
-      .sort((a, b) => a.date - b.date);
+  init = () => {
+    this.#moviesList = [...this.#moviesModel.movies];
+    this.#commentsList = [...this.#commentsModel.comments];
+    this.#initSortedIdLists();
+    this.#renderComponents();
+  };
 
-    const filmInfoComponent = new FilmInfoView(movie, filteredCommentsList);
-    const ADDED_CLASS = 'hide-overflow';
+  #getRelatedCommentsList = (movie) => this.#commentsList
+    .filter((element) => movie.comments.some((id) => id === element.id))
+    .sort((a, b) => a.date - b.date);
 
-    const keyDownHandler = (evt) => {
-      if(evt.key === 'Escape'){
-        evt.preventDefault();
-        collapse();
-      }
-    };
+  #renderMovie = (index, container) => {
+    const movie = this.#moviesList[index];
+    const relatedCommentsList = this.#getRelatedCommentsList(movie);
+    const moviePresenter = new MoviePresenter(container);
+    moviePresenter.init(movie, relatedCommentsList);
+  };
 
-    function collapse(){
-      filmInfoComponent.element.remove();
-      document.body.classList.remove(ADDED_CLASS);
-      document.removeEventListener('keydown', keyDownHandler);
-    }
-
-    const closeButtonClickHandler = () => collapse();
-
-    filmInfoComponent.setCloseButtonClickHandler(closeButtonClickHandler);
-
-    document.body.append(filmInfoComponent.element);
-    document.body.classList.add(ADDED_CLASS);
-    document.addEventListener('keydown', keyDownHandler);
-  }
-
-  #fillGroup(start, count, contentGroup, maskArray){
+  #fillGroup = (start, count, contentGroup, maskArray) => {
     const limit = start + count < this.#moviesList.length ?
       start + count :
       this.#moviesList.length;
 
     for(let i = start; i < limit; i++){
       const index = maskArray ? maskArray[i].index : i;
-      const movie = this.#moviesList[index];
-      this.#renderFilmCard(movie, contentGroup.filmsContainer);
+      this.#renderMovie(index, contentGroup.filmsContainer);
     }
     return limit - start;
-  }
+  };
 
-  #renderShowMoreButton(){
-    const showMoreButtonClickingHandler = () => {
-      this.#moviesShownCount += this.#fillGroup(this.#moviesShownCount, MOVIES_COUNT, this.#mainContentGroupComponent);
-      if(this.#moviesShownCount === this.#moviesList.length){
-        this.#showMoreButtonComponent.hide();
-      }
-    };
+  #showMoreButtonClickHandler = () => {
+    this.#moviesShownCount += this.#fillGroup(this.#moviesShownCount, MOVIES_COUNT_PER_PORTION, this.#mainContentGroupComponent);
+    if(this.#moviesShownCount === this.#moviesList.length){
+      this.#showMoreButtonComponent.hide();
+    }
+  };
+
+  #renderShowMoreButton = () => {
     render(this.#showMoreButtonComponent, this.#mainContentGroupComponent.element);
-    this.#showMoreButtonComponent.setClickHandler(showMoreButtonClickingHandler);
-  }
+    this.#showMoreButtonComponent.setClickHandler(this.#showMoreButtonClickHandler);
+  };
 
-  #renderComponents(){
-
+  #renderComponents = () => {
     render(new MenuView(), this.#containerElement);
     render(this.#mainContentGroupComponent, this.#contentWrapperComponent.element);
     if(this.#moviesList.length){
       render(new SorterView(),this.#containerElement);
-      this.#moviesShownCount += this.#fillGroup(0, MOVIES_COUNT, this.#mainContentGroupComponent);
+      this.#moviesShownCount += this.#fillGroup(0, MOVIES_COUNT_PER_PORTION, this.#mainContentGroupComponent);
       this.#fillGroup(0, MOVIES_EXTRA_COUNT, this.#topContentGroupComponent, this.#moviesIdListSortedByRate);
       this.#fillGroup(0, MOVIES_EXTRA_COUNT, this.#popularContentGroupComponent, this.#moviesIdListSortedByComments);
       if(this.#moviesList.length > this.#moviesShownCount){
@@ -113,14 +96,9 @@ export default class MoviesListPresenter{
       this.#mainContentGroupComponent.revealCaption();
     }
     render(this.#contentWrapperComponent, this.#containerElement);
-  }
+  };
 
-  init(containerElement, moviesModel, commentsModel) {
-    this.#containerElement = containerElement;
-    this.#moviesModel = moviesModel;
-    this.#commentsModel = commentsModel;
-    this.#moviesList = [...this.#moviesModel.movies];
-    this.#commentsList = [...this.#commentsModel.comments];
+  #initSortedIdLists = () => {
     if(this.#moviesList.length){
       this.#moviesIdListSortedByRate = this.#moviesList.map(
         (element, index) => ({index, rating : element.filmInfo.totalRating})
@@ -132,6 +110,5 @@ export default class MoviesListPresenter{
       );
       this.#moviesIdListSortedByComments = this.#moviesIdListSortedByComments.sort((a, b) => b.commentsCount - a.commentsCount);
     }
-    this.#renderComponents();
-  }
+  };
 }

@@ -2,7 +2,7 @@ import { generateInteger, generateArrayFrom, generateDate, cutWithPeriod } from 
 
 const COMMENTS_TOTAL = 50;
 const MAX_SENTENCES_COUNT = 5;
-const MAX_COMMENTS_COUNT = 4;
+const MAX_COMMENTS_COUNT = 5;
 
 const TITLES = [
   'The Man with the Golden Arm',

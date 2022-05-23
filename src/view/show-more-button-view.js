@@ -18,7 +18,7 @@ export default class ShowMoreButtonView extends AbstractView{
     this._callback.click();
   };
 
-  hide(){
+  hide = () => {
     this.element.classList.add(CLASS_HIDDEN);
-  }
+  };
 }

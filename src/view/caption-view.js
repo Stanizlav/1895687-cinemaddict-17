@@ -25,13 +25,13 @@ export default class CaptionView extends AbstractView{
     this.element.textContent = value;
   }
 
-  hide(){
+  hide = () => {
     this.#hidden = true;
     this.element.classList.add(CLASS_HIDDEN);
-  }
+  };
 
-  reveal(){
+  reveal = () => {
     this.#hidden = false;
     this.element.classList.remove(CLASS_HIDDEN);
-  }
+  };
 }
