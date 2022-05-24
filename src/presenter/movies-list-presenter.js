@@ -67,10 +67,16 @@ export default class MoviesListPresenter{
     }
   }
 
+  #prepareOpenExtensive = () => {
+    this.#moviesPresenters.forEach((presenter)=>presenter.collapseExtensive());
+    this.#topMoviesPresenters.forEach((presenter)=>presenter.collapseExtensive());
+    this.#popularMoviesPresenters.forEach((presenter)=>presenter.collapseExtensive());
+  };
+
   #renderMovie = (index, container, presenters) => {
     const movie = this.#moviesList[index];
     const relatedCommentsList = this.#getRelatedCommentsList(movie);
-    const moviePresenter = new MoviePresenter(container, this.#changeDataHandler, relatedCommentsList);
+    const moviePresenter = new MoviePresenter(container, this.#changeDataHandler, this.#prepareOpenExtensive, relatedCommentsList);
     moviePresenter.init(movie);
     presenters.set(movie.id, moviePresenter);
   };

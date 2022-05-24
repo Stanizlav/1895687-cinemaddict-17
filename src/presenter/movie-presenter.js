@@ -7,15 +7,17 @@ const HIDING_SCROLL_CLASS = 'hide-overflow';
 export default class MoviePresenter{
   #containerElement = null;
   #changeData = null;
+  #prepareOpenExtensive = null;
 
   #movie = null;
   #commentsList = null;
   #filmCardComponent = null;
   #filmInfoComponent = null;
 
-  constructor(containerElement, changeData, relatedCommentsList){
+  constructor(containerElement, changeData, prepareOpenExtensive, relatedCommentsList){
     this.#containerElement = containerElement;
     this.#changeData = changeData;
+    this.#prepareOpenExtensive = prepareOpenExtensive;
     this.#commentsList = relatedCommentsList;
   }
 
@@ -72,19 +74,20 @@ export default class MoviePresenter{
   #keyDownHandler = (evt) => {
     if(evt.key === 'Escape'){
       evt.preventDefault();
-      this.#collapseFilmInfo();
+      this.collapseExtensive();
     }
   };
 
-  #collapseFilmInfo = () => {
+  collapseExtensive = () => {
     this.#filmInfoComponent.element.remove();
     document.body.classList.remove(HIDING_SCROLL_CLASS);
     document.removeEventListener('keydown', this.#keyDownHandler);
   };
 
-  #filmInfoCloseButtonClickHandler = () => this.#collapseFilmInfo();
+  #filmInfoCloseButtonClickHandler = () => this.collapseExtensive();
 
   #renderFilmInfo = () => {
+    this.#prepareOpenExtensive();
     document.body.append(this.#filmInfoComponent.element);
     document.body.classList.add(HIDING_SCROLL_CLASS);
     document.addEventListener('keydown', this.#keyDownHandler);
