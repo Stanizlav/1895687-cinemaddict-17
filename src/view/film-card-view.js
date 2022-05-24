@@ -1,5 +1,5 @@
 import FilmAbstractView from './film-abstract-view.js';
-import { convertDuration, getYear } from '../utils.js';
+import { convertDuration, getYear } from '../utils/data-utils.js';
 
 const DESCRIPTION_LIMIT = 140;
 

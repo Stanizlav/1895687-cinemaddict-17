@@ -1,4 +1,5 @@
 import { render } from '../framework/render.js';
+import { updateItem } from '../utils/common-utils.js';
 import MoviePresenter from './movie-presenter.js';
 import MenuView from '../view/menu-view.js';
 import SorterView from '../view/sorter-view.js';
@@ -19,8 +20,11 @@ export default class MoviesListPresenter{
   #popularContentGroupComponent = new ContentGroupView(POPULAR_GROUP_CAPTION, true);
   #contentWrapperComponent = new ContentWrapperView();
   #showMoreButtonComponent = new ShowMoreButtonView();
-  #moviesShownCount = 0;
+  #moviesPresenters = new Map();
+  #topMoviesPresenters = new Map();
+  #popularMoviesPresenters = new Map();
 
+  #moviesShownCount = 0;
   #containerElement = null;
   #moviesModel = null;
   #commentsModel = null;
@@ -46,27 +50,45 @@ export default class MoviesListPresenter{
     .filter((element) => movie.comments.some((id) => id === element.id))
     .sort((a, b) => a.date - b.date);
 
-  #renderMovie = (index, container) => {
-    const movie = this.#moviesList[index];
-    const relatedCommentsList = this.#getRelatedCommentsList(movie);
-    const moviePresenter = new MoviePresenter(container);
-    moviePresenter.init(movie, relatedCommentsList);
+  #changeDataHandler = (modifiedMovie) => {
+    this.#moviesList = updateItem(this.#moviesList, modifiedMovie);
+    this.#reinitMoviePresenters(modifiedMovie);
   };
 
-  #fillGroup = (start, count, contentGroup, maskArray) => {
+  #reinitMoviePresenters(movie){
+    if(this.#moviesPresenters.has(movie.id)){
+      this.#moviesPresenters.get(movie.id).init(movie);
+    }
+    if(this.#topMoviesPresenters.has(movie.id)){
+      this.#topMoviesPresenters.get(movie.id).init(movie);
+    }
+    if(this.#popularMoviesPresenters.has(movie.id)){
+      this.#popularMoviesPresenters.get(movie.id).init(movie);
+    }
+  }
+
+  #renderMovie = (index, container, presenters) => {
+    const movie = this.#moviesList[index];
+    const relatedCommentsList = this.#getRelatedCommentsList(movie);
+    const moviePresenter = new MoviePresenter(container, this.#changeDataHandler, relatedCommentsList);
+    moviePresenter.init(movie);
+    presenters.set(movie.id, moviePresenter);
+  };
+
+  #fillGroup = (start, count, contentGroup, presenters, maskArray) => {
     const limit = start + count < this.#moviesList.length ?
       start + count :
       this.#moviesList.length;
 
     for(let i = start; i < limit; i++){
       const index = maskArray ? maskArray[i].index : i;
-      this.#renderMovie(index, contentGroup.filmsContainer);
+      this.#renderMovie(index, contentGroup.filmsContainer, presenters);
     }
     return limit - start;
   };
 
   #showMoreButtonClickHandler = () => {
-    this.#moviesShownCount += this.#fillGroup(this.#moviesShownCount, MOVIES_COUNT_PER_PORTION, this.#mainContentGroupComponent);
+    this.#moviesShownCount += this.#fillGroup(this.#moviesShownCount, MOVIES_COUNT_PER_PORTION, this.#mainContentGroupComponent, this.#moviesPresenters);
     if(this.#moviesShownCount === this.#moviesList.length){
       this.#showMoreButtonComponent.hide();
     }
@@ -82,9 +104,9 @@ export default class MoviesListPresenter{
     render(this.#mainContentGroupComponent, this.#contentWrapperComponent.element);
     if(this.#moviesList.length){
       render(new SorterView(),this.#containerElement);
-      this.#moviesShownCount += this.#fillGroup(0, MOVIES_COUNT_PER_PORTION, this.#mainContentGroupComponent);
-      this.#fillGroup(0, MOVIES_EXTRA_COUNT, this.#topContentGroupComponent, this.#moviesIdListSortedByRate);
-      this.#fillGroup(0, MOVIES_EXTRA_COUNT, this.#popularContentGroupComponent, this.#moviesIdListSortedByComments);
+      this.#moviesShownCount += this.#fillGroup(0, MOVIES_COUNT_PER_PORTION, this.#mainContentGroupComponent, this.#moviesPresenters);
+      this.#fillGroup(0, MOVIES_EXTRA_COUNT, this.#topContentGroupComponent, this.#topMoviesPresenters, this.#moviesIdListSortedByRate);
+      this.#fillGroup(0, MOVIES_EXTRA_COUNT, this.#popularContentGroupComponent, this.#popularMoviesPresenters, this.#moviesIdListSortedByComments);
       if(this.#moviesList.length > this.#moviesShownCount){
         this.#renderShowMoreButton();
       }

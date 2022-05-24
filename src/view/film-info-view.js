@@ -1,4 +1,4 @@
-import { convertDuration, getCommentDate, getHumanisedDate } from '../utils.js';
+import { convertDuration, getCommentDate, getHumanisedDate } from '../utils/data-utils.js';
 import FilmAbstractView from './film-abstract-view.js';
 
 const createGenreTemplate = (genre) => `<span class="film-details__genre">${ genre }</span>`;
@@ -197,6 +197,11 @@ export default class FilmInfoView extends FilmAbstractView{
   get addToFavoritesButton() {
     return this.element.querySelector('.film-details__control-button--favorite');
   }
+
+  get scrollOffset() { return this.element.scrollTop; }
+  set scrollOffset(value) { this.element.scrollTop = value; }
+
+  get isOpen() { return this.element.parentElement !== null; }
 
   setCloseButtonClickHandler = (callback) => {
     this._callback.closeButtonClick = callback;
