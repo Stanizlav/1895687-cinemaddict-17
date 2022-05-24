@@ -32,11 +32,11 @@ export default class ContentGroupView extends AbstractView{
   get caption() { return this.#captionComponent.text; }
   set caption(value) { this.#captionComponent.text = value; }
 
-  hideCaption(){
+  hideCaption = () => {
     this.#captionComponent.hide();
-  }
+  };
 
-  revealCaption(){
+  revealCaption = () => {
     this.#captionComponent.reveal();
-  }
+  };
 }

@@ -1,12 +1,15 @@
-import AbstractView from '../framework/view/abstract-view.js';
-import { convertDuration, getYear } from '../utils.js';
+import FilmAbstractView from './film-abstract-view.js';
+import { convertDuration, getYear } from '../utils/data-utils.js';
 
 const DESCRIPTION_LIMIT = 140;
 
+const getActivityClass = (flag) => flag ? 'film-card__controls-item--active' : '';
+
 const createFilmCardTemplate = (movie) => {
-  const { comments, filmInfo } = movie;
+  const { comments, filmInfo, userDetails } = movie;
   const  { title, totalRating, poster, release, runtime, genre, description } = filmInfo;
   const { date } = release;
+  const { watchlist, alreadyWatched, favorite } = userDetails;
 
   const releaseYear = getYear(date);
   const duration = convertDuration(runtime);
@@ -29,27 +32,37 @@ const createFilmCardTemplate = (movie) => {
         <span class="film-card__comments"> ${ comments.length } comments</span>
       </a>
       <div class="film-card__controls">
-        <button class="film-card__controls-item film-card__controls-item--add-to-watchlist" type="button">Add to watchlist</button>
-        <button class="film-card__controls-item film-card__controls-item--mark-as-watched" type="button">Mark as watched</button>
-        <button class="film-card__controls-item film-card__controls-item--favorite" type="button">Mark as favorite</button>
+        <button class="film-card__controls-item ${getActivityClass(watchlist)} film-card__controls-item--add-to-watchlist" type="button">Add to watchlist</button>
+        <button class="film-card__controls-item ${getActivityClass(alreadyWatched)} film-card__controls-item--mark-as-watched" type="button">Mark as watched</button>
+        <button class="film-card__controls-item ${getActivityClass(favorite)} film-card__controls-item--favorite" type="button">Mark as favorite</button>
       </div>
     </article>`);
 };
 
-export default class FilmCardView extends AbstractView{
-  #movie = null;
+export default class FilmCardView extends FilmAbstractView{
 
   constructor(movie){
-    super();
-    this.#movie = movie;
+    super(movie);
   }
 
   get template(){
-    return createFilmCardTemplate(this.#movie);
+    return createFilmCardTemplate(this._movie);
   }
 
   get #link(){
     return this.element.querySelector('.film-card__link');
+  }
+
+  get addToWatchlistButton() {
+    return this.element.querySelector('.film-card__controls-item--add-to-watchlist');
+  }
+
+  get alreadyWatchedButton() {
+    return this.element.querySelector('.film-card__controls-item--mark-as-watched');
+  }
+
+  get addToFavoritesButton() {
+    return this.element.querySelector('.film-card__controls-item--favorite');
   }
 
   setLinkClickHandler = (callback) =>{

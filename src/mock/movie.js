@@ -1,8 +1,10 @@
-import { generateInteger, generateArrayFrom, generateDate, cutWithPeriod } from '../utils.js';
+import { generateInteger, cutWithPeriod } from '../utils/common-utils.js';
+import { generateArrayFrom } from '../utils/array-utils.js';
+import { generateDate } from '../utils/data-utils.js';
 
 const COMMENTS_TOTAL = 50;
 const MAX_SENTENCES_COUNT = 5;
-const MAX_COMMENTS_COUNT = 4;
+const MAX_COMMENTS_COUNT = 5;
 
 const TITLES = [
   'The Man with the Golden Arm',

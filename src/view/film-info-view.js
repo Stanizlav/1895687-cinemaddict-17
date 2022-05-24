@@ -1,5 +1,5 @@
-import AbstractView from '../framework/view/abstract-view.js';
-import { convertDuration, getCommentDate, getHumanisedDate } from '../utils.js';
+import { convertDuration, getCommentDate, getHumanisedDate } from '../utils/data-utils.js';
+import FilmAbstractView from './film-abstract-view.js';
 
 const createGenreTemplate = (genre) => `<span class="film-details__genre">${ genre }</span>`;
 
@@ -27,7 +27,7 @@ const createCommentTemplate = (commentObject) => {
   );
 };
 
-const createFilmInfoTemplate = (movie, commentsList) =>{
+const createFilmInfoTemplate = (movie, commentsList) => {
 
   const { comments, filmInfo, userDetails } = movie;
   const  {
@@ -170,27 +170,42 @@ const createFilmInfoTemplate = (movie, commentsList) =>{
     </section>`
   );
 };
-export default class FilmInfoView extends AbstractView{
-  #movie = null;
+export default class FilmInfoView extends FilmAbstractView{
   #commentsList = null;
 
   constructor(movie, commentsList){
-    super();
-    this.#movie = movie;
+    super(movie);
     this.#commentsList = commentsList;
   }
 
   get template(){
-    return createFilmInfoTemplate(this.#movie, this.#commentsList);
+    return createFilmInfoTemplate(this._movie, this.#commentsList);
   }
 
-  get #closeButton(){
+  get closeButton(){
     return this.element.querySelector('.film-details__close-btn');
   }
 
+  get addToWatchlistButton() {
+    return this.element.querySelector('.film-details__control-button--watchlist');
+  }
+
+  get alreadyWatchedButton() {
+    return this.element.querySelector('.film-details__control-button--watched');
+  }
+
+  get addToFavoritesButton() {
+    return this.element.querySelector('.film-details__control-button--favorite');
+  }
+
+  get scrollOffset() { return this.element.scrollTop; }
+  set scrollOffset(value) { this.element.scrollTop = value; }
+
+  get isOpen() { return this.element.parentElement !== null; }
+
   setCloseButtonClickHandler = (callback) => {
     this._callback.closeButtonClick = callback;
-    this.#closeButton.addEventListener('click', this.#closeButtonClickHandler);
+    this.closeButton.addEventListener('click', this.#closeButtonClickHandler);
   };
 
   #closeButtonClickHandler = () => {
