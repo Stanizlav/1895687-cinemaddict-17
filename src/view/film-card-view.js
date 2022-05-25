@@ -1,4 +1,4 @@
-import FilmAbstractView from './film-abstract-view.js';
+import AbstractView from '../framework/view/abstract-view.js';
 import { convertDuration, getYear } from '../utils/data-utils.js';
 
 const DESCRIPTION_LIMIT = 140;
@@ -39,14 +39,16 @@ const createFilmCardTemplate = (movie) => {
     </article>`);
 };
 
-export default class FilmCardView extends FilmAbstractView{
+export default class FilmCardView extends AbstractView{
+  #movie = null;
 
   constructor(movie){
-    super(movie);
+    super();
+    this.#movie = movie;
   }
 
   get template(){
-    return createFilmCardTemplate(this._movie);
+    return createFilmCardTemplate(this.#movie);
   }
 
   get #link(){
@@ -73,5 +75,32 @@ export default class FilmCardView extends FilmAbstractView{
   #linkClickHandler = (evt) => {
     evt.preventDefault();
     this._callback.clickLink();
+  };
+
+  setAddToWatchlistClickHandler = (callback) => {
+    this._callback.clickAddToWatchlist = callback;
+    this.addToWatchlistButton.addEventListener('click', this.#addToWatchlistClickHandler);
+  };
+
+  #addToWatchlistClickHandler = () => {
+    this._callback.clickAddToWatchlist();
+  };
+
+  setAlreadyWatchedClickHandler = (callback) => {
+    this._callback.clickAlreadyWatched = callback;
+    this.alreadyWatchedButton.addEventListener('click', this.#alreadyWatchedClickHandler);
+  };
+
+  #alreadyWatchedClickHandler = () => {
+    this._callback.clickAlreadyWatched();
+  };
+
+  setAddToFavoritesClickHandler = (callback) => {
+    this._callback.clickAddToFavorites = callback;
+    this.addToFavoritesButton.addEventListener('click', this.#addToFavoritesClickHandler);
+  };
+
+  #addToFavoritesClickHandler = () => {
+    this._callback.clickAddToFavorites();
   };
 }
