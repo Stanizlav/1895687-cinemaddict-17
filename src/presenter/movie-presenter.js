@@ -7,17 +7,17 @@ const HIDING_SCROLL_CLASS = 'hide-overflow';
 export default class MoviePresenter{
   #containerElement = null;
   #changeData = null;
-  #prepareOpenExtensive = null;
+  #prepareOpeningExtensive = null;
 
   #movie = null;
   #commentsList = null;
   #filmCardComponent = null;
   #filmInfoComponent = null;
 
-  constructor(containerElement, changeData, prepareOpenExtensive, relatedCommentsList){
+  constructor(containerElement, changeData, prepareOpeningExtensive, relatedCommentsList){
     this.#containerElement = containerElement;
     this.#changeData = changeData;
-    this.#prepareOpenExtensive = prepareOpenExtensive;
+    this.#prepareOpeningExtensive = prepareOpeningExtensive;
     this.#commentsList = relatedCommentsList;
   }
 
@@ -79,21 +79,24 @@ export default class MoviePresenter{
   };
 
   collapseExtensive = () => {
-    this.#filmInfoComponent.element.remove();
-    document.body.classList.remove(HIDING_SCROLL_CLASS);
-    document.removeEventListener('keydown', this.#keyDownHandler);
+    if(this.#filmInfoComponent.isOpen){
+      this.#filmInfoComponent.reset(this.#movie, this.#commentsList);
+      this.#filmInfoComponent.element.remove();
+      document.body.classList.remove(HIDING_SCROLL_CLASS);
+      document.removeEventListener('keydown', this.#keyDownHandler);
+    }
   };
 
   #filmInfoCloseButtonClickHandler = () => this.collapseExtensive();
 
   #renderFilmInfo = () => {
-    this.#prepareOpenExtensive();
+    this.#prepareOpeningExtensive();
     document.body.append(this.#filmInfoComponent.element);
     document.body.classList.add(HIDING_SCROLL_CLASS);
     document.addEventListener('keydown', this.#keyDownHandler);
   };
 
-  #addToWatchlistClickHandler = () =>{
+  #addToWatchlistClickHandler = () => {
     this.#changeData({
       ...this.#movie,
       userDetails:{
@@ -103,7 +106,7 @@ export default class MoviePresenter{
     });
   };
 
-  #alreadyWatchedClickHandler = () =>{
+  #alreadyWatchedClickHandler = () => {
     this.#changeData({
       ...this.#movie,
       userDetails:{
@@ -113,7 +116,7 @@ export default class MoviePresenter{
     });
   };
 
-  #addToFavoritesClickHandler = () =>{
+  #addToFavoritesClickHandler = () => {
     this.#changeData({
       ...this.#movie,
       userDetails:{
