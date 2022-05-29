@@ -1,5 +1,5 @@
 import { getAnElement } from '../utils/array-utils.js';
-import { generateDate } from '../utils/data-utils.js';
+import { generateDate } from '../utils/date-utils.js';
 
 const EMOTIONS = ['smile', 'sleeping', 'puke', 'angry'];
 const AUTHORS = [

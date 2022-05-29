@@ -1,8 +1,7 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import FilmsContainerView from './films-container-view.js';
 import CaptionView from './caption-view.js';
-
-const CLASS_EXTRA = 'films-list--extra';
+import { StyleClass } from '../utils/constant-utils.js';
 
 const createContentGroupTemplate = () => '<section class="films-list"></section>';
 
@@ -13,7 +12,7 @@ export default class ContentGroupView extends AbstractView{
   constructor(caption, isExtra, isCaptionHidden){
     super();
     if(isExtra){
-      this.element.classList.add(CLASS_EXTRA);
+      this.element.classList.add(StyleClass.FILMS_LIST_EXTRA);
     }
     this.#captionComponent = new CaptionView(caption, isCaptionHidden);
     this.element.prepend(this.#captionComponent.element);

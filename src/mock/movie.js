@@ -1,6 +1,6 @@
 import { generateInteger, cutWithPeriod } from '../utils/common-utils.js';
 import { generateArrayFrom } from '../utils/array-utils.js';
-import { generateDate } from '../utils/data-utils.js';
+import { generateDate } from '../utils/date-utils.js';
 
 const COMMENTS_TOTAL = 50;
 const MAX_SENTENCES_COUNT = 5;

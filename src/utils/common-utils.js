@@ -19,7 +19,7 @@ const cutWithPeriod = (value, min, max) =>{
 };
 
 const updateItem = (items, update) => {
-  const index = items.findIndex((item)=>item.id===update.id);
+  const index = items.findIndex((item) => item.id === update.id);
   if(index === -1){
     return items;
   }
@@ -30,8 +30,22 @@ const updateItem = (items, update) => {
   ];
 };
 
+const removeItem = (items, update) => {
+  const index = items.findIndex((item) => item.id === update.id);
+
+  if(index === -1){
+    return items;
+  }
+
+  return [
+    ...items.slice(0, index),
+    ...items.slice(index + 1)
+  ];
+};
+
 export{
   generateInteger,
   cutWithPeriod,
-  updateItem
+  updateItem,
+  removeItem
 };

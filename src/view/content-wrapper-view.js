@@ -6,4 +6,8 @@ export default class ContentWrapperView extends AbstractView{
   get template(){
     return createContentWrapperTemplate();
   }
+
+  getEmpty = () => {
+    this.element.innerHTML = '';
+  };
 }

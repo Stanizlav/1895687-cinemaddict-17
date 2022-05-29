@@ -1,8 +1,7 @@
 import { remove, render, replace } from '../framework/render.js';
+import { StyleClass, UpdateType, UserAction } from '../utils/constant-utils.js';
 import FilmCardView from '../view/film-card-view.js';
 import FilmInfoView from '../view/film-info-view.js';
-
-const HIDING_SCROLL_CLASS = 'hide-overflow';
 
 export default class MoviePresenter{
   #containerElement = null;
@@ -82,7 +81,7 @@ export default class MoviePresenter{
     if(this.#filmInfoComponent.isOpen){
       this.#filmInfoComponent.reset(this.#movie, this.#commentsList);
       this.#filmInfoComponent.element.remove();
-      document.body.classList.remove(HIDING_SCROLL_CLASS);
+      document.body.classList.remove(StyleClass.HIDING_SCROLL_CLASS);
       document.removeEventListener('keydown', this.#keyDownHandler);
     }
   };
@@ -92,12 +91,12 @@ export default class MoviePresenter{
   #renderFilmInfo = () => {
     this.#prepareOpeningExtensive();
     document.body.append(this.#filmInfoComponent.element);
-    document.body.classList.add(HIDING_SCROLL_CLASS);
+    document.body.classList.add(StyleClass.HIDING_SCROLL_CLASS);
     document.addEventListener('keydown', this.#keyDownHandler);
   };
 
   #addToWatchlistClickHandler = () => {
-    this.#changeData({
+    this.#changeData(UserAction.UPDATE_MOVIE, UpdateType.PATCH, {
       ...this.#movie,
       userDetails:{
         ...this.#movie.userDetails,
@@ -107,7 +106,7 @@ export default class MoviePresenter{
   };
 
   #alreadyWatchedClickHandler = () => {
-    this.#changeData({
+    this.#changeData(UserAction.UPDATE_MOVIE, UpdateType.PATCH, {
       ...this.#movie,
       userDetails:{
         ...this.#movie.userDetails,
@@ -117,7 +116,7 @@ export default class MoviePresenter{
   };
 
   #addToFavoritesClickHandler = () => {
-    this.#changeData({
+    this.#changeData(UserAction.UPDATE_MOVIE, UpdateType.PATCH, {
       ...this.#movie,
       userDetails:{
         ...this.#movie.userDetails,

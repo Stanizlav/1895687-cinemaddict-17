@@ -1,6 +1,5 @@
 import AbstractView from '../framework/view/abstract-view.js';
-
-const CLASS_HIDDEN = 'visually-hidden';
+import { StyleClass } from '../utils/constant-utils.js';
 
 const createShowMoreButtonTemplate = () => '<button class="films-list__show-more">Show more</button>';
 
@@ -19,6 +18,6 @@ export default class ShowMoreButtonView extends AbstractView{
   };
 
   hide = () => {
-    this.element.classList.add(CLASS_HIDDEN);
+    this.element.classList.add(StyleClass.HIDDEN);
   };
 }

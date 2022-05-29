@@ -1,4 +1,5 @@
 import AbstractView from '../framework/view/abstract-view.js';
+import { StyleClass } from '../utils/constant-utils.js';
 
 const createSorterTemplate = () =>
   `<ul class="sort">
@@ -11,4 +12,12 @@ export default class SorterView extends AbstractView{
   get template(){
     return createSorterTemplate();
   }
+
+  hide = () => {
+    this.element.classList.add(StyleClass.HIDDEN);
+  };
+
+  reveal = () => {
+    this.element.classList.remove(StyleClass.HIDDEN);
+  };
 }

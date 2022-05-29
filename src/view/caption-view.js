@@ -1,9 +1,8 @@
 import AbstractView from '../framework/view/abstract-view.js';
-
-const CLASS_HIDDEN = 'visually-hidden';
+import { StyleClass } from '../utils/constant-utils.js';
 
 const createCaptionTemplate = (text, isHidden) =>
-  `<h2 class="films-list__title ${ isHidden ? CLASS_HIDDEN : '' }">${text}</h2>`;
+  `<h2 class="films-list__title ${ isHidden ? StyleClass.HIDDEN : '' }">${text}</h2>`;
 
 export default class CaptionView extends AbstractView{
   #text = null;
@@ -27,11 +26,11 @@ export default class CaptionView extends AbstractView{
 
   hide = () => {
     this.#hidden = true;
-    this.element.classList.add(CLASS_HIDDEN);
+    this.element.classList.add(StyleClass.HIDDEN);
   };
 
   reveal = () => {
     this.#hidden = false;
-    this.element.classList.remove(CLASS_HIDDEN);
+    this.element.classList.remove(StyleClass.HIDDEN);
   };
 }
