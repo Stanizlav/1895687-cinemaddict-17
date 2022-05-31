@@ -16,8 +16,24 @@ const StyleClass = {
   FILMS_LIST_EXTRA : 'films-list--extra'
 };
 
+const FilterType = {
+  ALL : 'all',
+  WATCHLIST : 'watchlist',
+  HISTORY : 'history',
+  FAVORITES : 'favorites'
+};
+
+const EmotionType = {
+  SMILE : 'smile',
+  SLEEPING : 'sleeping',
+  PUKE : 'puke',
+  ANGRY: 'angry'
+};
+
 export{
   UpdateType,
   UserAction,
-  StyleClass
+  StyleClass,
+  FilterType,
+  EmotionType
 };

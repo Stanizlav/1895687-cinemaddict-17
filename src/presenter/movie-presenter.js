@@ -79,11 +79,20 @@ export default class MoviePresenter{
 
   collapseExtensive = () => {
     if(this.#filmInfoComponent.isOpen){
-      this.#filmInfoComponent.reset(this.#movie, this.#commentsList);
+      this.#filmInfoComponent.resetView(this.#movie, this.#commentsList);
       this.#filmInfoComponent.element.remove();
       document.body.classList.remove(StyleClass.HIDING_SCROLL_CLASS);
       document.removeEventListener('keydown', this.#keyDownHandler);
     }
+  };
+
+  destroyComponents = () => {
+    if(this.#filmInfoComponent.isOpen){
+      document.body.classList.remove(StyleClass.HIDING_SCROLL_CLASS);
+      document.removeEventListener('keydown', this.#keyDownHandler);
+    }
+    remove(this.#filmInfoComponent);
+    remove(this.#filmCardComponent);
   };
 
   #filmInfoCloseButtonClickHandler = () => this.collapseExtensive();

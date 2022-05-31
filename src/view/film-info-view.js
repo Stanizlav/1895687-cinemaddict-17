@@ -1,5 +1,6 @@
 import { convertDuration, getCommentDate, getHumanisedDate } from '../utils/date-utils.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
+import { EmotionType } from '../utils/constant-utils.js';
 
 const createGenreTemplate = (genre) => `<span class="film-details__genre">${ genre }</span>`;
 
@@ -147,22 +148,22 @@ const createFilmInfoTemplate = ({movie, commentsList, setEmotion, typedComment})
               </label>
 
               <div class="film-details__emoji-list">
-                <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-smile" value="smile" ${ getCheckedAttribute(setEmotion, 'smile') }>
+                <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-smile" value="smile" ${ getCheckedAttribute(setEmotion, EmotionType.SMILE) }>
                 <label class="film-details__emoji-label" for="emoji-smile">
                   <img src="./images/emoji/smile.png" width="30" height="30" alt="emoji">
                 </label>
 
-                <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-sleeping" value="sleeping" ${ getCheckedAttribute(setEmotion, 'sleeping') }>
+                <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-sleeping" value="sleeping" ${ getCheckedAttribute(setEmotion, EmotionType.SLEEPING) }>
                 <label class="film-details__emoji-label" for="emoji-sleeping">
                   <img src="./images/emoji/sleeping.png" width="30" height="30" alt="emoji">
                 </label>
 
-                <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-puke" value="puke" ${ getCheckedAttribute(setEmotion, 'puke') }>
+                <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-puke" value="puke" ${ getCheckedAttribute(setEmotion, EmotionType.PUKE) }>
                 <label class="film-details__emoji-label" for="emoji-puke">
                   <img src="./images/emoji/puke.png" width="30" height="30" alt="emoji">
                 </label>
 
-                <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-angry" value="angry" ${ getCheckedAttribute(setEmotion, 'angry') }>
+                <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-angry" value="angry" ${ getCheckedAttribute(setEmotion, EmotionType.ANGRY) }>
                 <label class="film-details__emoji-label" for="emoji-angry">
                   <img src="./images/emoji/angry.png" width="30" height="30" alt="emoji">
                 </label>
@@ -189,6 +190,8 @@ export default class FilmInfoView extends AbstractStatefulView{
     this._state = FilmInfoView.convertDataToState(movie, commentsList);
     this.#setInnerHandlers();
   }
+
+  //#region getters and setters
 
   get template(){
     return createFilmInfoTemplate(this._state);
@@ -223,7 +226,9 @@ export default class FilmInfoView extends AbstractStatefulView{
 
   get isOpen() { return this.element.parentElement !== null; }
 
-  reset = (movie, commentsList) => this.updateElement(FilmInfoView.convertDataToState(movie, commentsList));
+  //#endregion
+
+  resetView = (movie, commentsList) => this.updateElement(FilmInfoView.convertDataToState(movie, commentsList));
 
   setCloseButtonClickHandler = (callback) => {
     this._callback.closeButtonClick = callback;
