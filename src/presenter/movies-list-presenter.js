@@ -4,13 +4,13 @@ import SorterView from '../view/sorter-view.js';
 import ShowMoreButtonView from '../view/show-more-button-view';
 import ContentGroupView from '../view/content-group-view.js';
 import ContentWrapperView from '../view/content-wrapper-view.js';
-import { UpdateType, UserAction } from '../utils/constant-utils.js';
-import { filter } from '../utils/filter-utils.js';
+import { FilterType, NoMoviesCaption, SortType, UpdateType, UserAction } from '../utils/constant-utils.js';
+import { filterMovies } from '../utils/filter-utils.js';
+import { sortMovies } from '../utils/sort-utils.js';
 
 const MOVIES_COUNT_PER_PORTION = 5;
 const MOVIES_EXTRA_COUNT = 2;
 const MAIN_GROUP_CAPTION = 'All movies. Upcoming';
-const EMPTY_MAIN_GROUP_CAPTION = 'There are no movies in our database';
 const TOP_GROUP_CAPTION = 'Top rated';
 const POPULAR_GROUP_CAPTION = 'Most commented';
 
@@ -32,6 +32,7 @@ export default class MoviesListPresenter{
   #filterModel = null;
   #moviesIdListSortedByRate = null;
   #moviesIdListSortedByComments = null;
+  #sortType = SortType.DEFAULT;
 
   constructor(containerElement, moviesModel, commentsModel, filterModel){
     this.#containerElement = containerElement;
@@ -47,7 +48,13 @@ export default class MoviesListPresenter{
     this.#renderComponents();
   };
 
-  get movies () { return filter[this.#filterModel.filter](this.#moviesModel.movies); }
+  get filter () { return this.#filterModel.filter; }
+
+  get movies () {
+    const filteredMovies = filterMovies[this.filter](this.#moviesModel.movies);
+    return sortMovies[this.#sortType](filteredMovies);
+  }
+
   get comments () { return this.#commentsModel.comments; }
 
   #getRelatedCommentsList = (movie) => this.comments
@@ -57,7 +64,10 @@ export default class MoviesListPresenter{
   #viewActionHandler = (userAction, updateType, update) => {
     switch (userAction){
       case UserAction.UPDATE_MOVIE :
-        this.#moviesModel.updateMovie(updateType, update);
+        this.#moviesModel.updateMovie(
+          this.filter !== FilterType.ALL ? UpdateType.MINOR : updateType,
+          update
+        );
         break;
       case UserAction.ADD_COMMENT :
         //
@@ -142,17 +152,23 @@ export default class MoviesListPresenter{
     this.#showMoreButtonComponent.setClickHandler(this.#showMoreButtonClickHandler);
   };
 
-  #renderSorter = () => {
-    this.#sorterComponent = new SorterView();
+  #sortTypeSelectionHandler = (sortType) => {
+    this.#sortType = sortType;
+    this.#rerenderComponents();
+  };
+
+  #renderSorter = (sortType) => {
+    this.#sortType = sortType;
+    this.#sorterComponent = new SorterView(this.#sortType);
+    this.#sorterComponent.setSortTypeSelectionHandler(this.#sortTypeSelectionHandler);
     render(this.#sorterComponent, this.#containerElement);
   };
 
-  #renderComponents = (commonMoviesCount = MOVIES_COUNT_PER_PORTION) => {
-
+  #renderComponents = (commonMoviesCount = MOVIES_COUNT_PER_PORTION, sortType = SortType.DEFAULT) => {
     this.#mainContentGroupComponent = new ContentGroupView(MAIN_GROUP_CAPTION, false, true);
     render(this.#mainContentGroupComponent, this.#contentWrapperComponent.element);
     if(this.movies.length){
-      this.#renderSorter();
+      this.#renderSorter(sortType);
       this.#moviesShownCount += this.#fillGroup(0, commonMoviesCount, this.#mainContentGroupComponent, this.#moviesPresenters);
       this.#topContentGroupComponent = new ContentGroupView(TOP_GROUP_CAPTION, true);
       this.#popularContentGroupComponent = new ContentGroupView(POPULAR_GROUP_CAPTION, true);
@@ -165,7 +181,8 @@ export default class MoviesListPresenter{
       render(this.#popularContentGroupComponent, this.#contentWrapperComponent.element);
     }
     else{
-      this.#mainContentGroupComponent.caption = EMPTY_MAIN_GROUP_CAPTION;
+      const caption = NoMoviesCaption[this.filter];
+      this.#mainContentGroupComponent.caption = caption;
       this.#mainContentGroupComponent.revealCaption();
     }
     render(this.#contentWrapperComponent, this.#containerElement);
@@ -185,8 +202,9 @@ export default class MoviesListPresenter{
 
   #rerenderComponents = () => {
     const commonMoviesShownCount = this.#moviesShownCount;
+    const savedSortType = this.#sortType;
     this.#clearComponents();
-    this.#renderComponents(commonMoviesShownCount);
+    this.#renderComponents(commonMoviesShownCount, savedSortType);
   };
 
   #initSortedIdLists = () => {

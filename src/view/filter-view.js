@@ -4,7 +4,7 @@ import { FilterType } from '../utils/constant-utils.js';
 const getActivityClass = (setFilter, examinedFilter) =>
   setFilter === examinedFilter ? 'main-navigation__item--active' : '';
 
-const getFilterFromLink = (link) => {
+const getFilterTypeFromLink = (link) => {
   if(link.includes(FilterType.ALL)){
     return FilterType.ALL;
   }
@@ -18,6 +18,7 @@ const getFilterFromLink = (link) => {
     return FilterType.WATCHLIST;
   }
 };
+
 const createFilterItemTemplate =  (filter, currentFilterType) =>
   `<a href="#${filter.name.toLowerCase()}" class="main-navigation__item ${ getActivityClass(currentFilterType, filter.type) }">${ filter.name } <span class="main-navigation__item-count">${ filter.count }</span></a>`;
 
@@ -44,16 +45,16 @@ export default class FilterView extends AbstractView{
     return createFilterTemplate(this.#filters, this.#currentFilterType);
   }
 
-  setFilterChooseHandler = (callback) => {
-    this._callback.filterChoose = callback;
-    this.element.addEventListener('click', this.#filterChooseHandler);
+  setFilterSelectionHandler = (callback) => {
+    this._callback.filterSelect = callback;
+    this.element.addEventListener('click', this.#filterSelectionHandler);
   };
 
-  #filterChooseHandler = (evt) => {
+  #filterSelectionHandler = (evt) => {
+    evt.preventDefault();
     if(evt.target.matches('a')){
-      evt.preventDefault();
-      const chosenFilter = getFilterFromLink(evt.target.href);
-      this._callback.filterChoose(chosenFilter);
+      const chosenFilterType = getFilterTypeFromLink(evt.target.href);
+      this._callback.filterSelect(chosenFilterType);
       evt.stopPropagation();
     }
   };

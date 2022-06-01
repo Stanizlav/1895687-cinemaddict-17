@@ -1,6 +1,6 @@
 import { remove, render, replace } from '../framework/render.js';
 import { FilterType } from '../utils/constant-utils.js';
-import { filter } from '../utils/filter-utils.js';
+import { filterMovies } from '../utils/filter-utils.js';
 import FilterView from '../view/filter-view.js';
 
 export default class FilterPresenter {
@@ -20,7 +20,7 @@ export default class FilterPresenter {
   init = () => {
     const previousFilterComponent = this.#filterComponent;
     this.#filterComponent = new FilterView(this.filters, this.#filterModel.filter);
-    this.#filterComponent.setFilterChooseHandler(this.#viewActionHandler);
+    this.#filterComponent.setFilterSelectionHandler(this.#viewActionHandler);
     if(previousFilterComponent === null){
       render(this.#filterComponent, this.#containerElement);
       return;
@@ -36,17 +36,17 @@ export default class FilterPresenter {
       {
         type: FilterType.WATCHLIST,
         name: 'Watchlist',
-        count: filter[FilterType.WATCHLIST](movies).length
+        count: filterMovies[FilterType.WATCHLIST](movies).length
       },
       {
         type: FilterType.HISTORY,
         name: 'History',
-        count: filter[FilterType.HISTORY](movies).length
+        count: filterMovies[FilterType.HISTORY](movies).length
       },
       {
         type: FilterType.FAVORITES,
         name: 'Favorites',
-        count: filter[FilterType.FAVORITES](movies).length
+        count: filterMovies[FilterType.FAVORITES](movies).length
       }
     ];
   }

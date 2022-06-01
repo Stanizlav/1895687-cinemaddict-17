@@ -23,6 +23,19 @@ const FilterType = {
   FAVORITES : 'favorites'
 };
 
+const NoMoviesCaption = {
+  [FilterType.ALL] : 'There are no movies in our database',
+  [FilterType.FAVORITES] : 'There are no favorite movies now',
+  [FilterType.HISTORY] : 'There are no watched movies now',
+  [FilterType.WATCHLIST] : 'There are no movies to watch now'
+};
+
+const SortType = {
+  DEFAULT : 'default',
+  DATE : 'date',
+  RATING : 'rating'
+};
+
 const EmotionType = {
   SMILE : 'smile',
   SLEEPING : 'sleeping',
@@ -35,5 +48,7 @@ export{
   UserAction,
   StyleClass,
   FilterType,
+  NoMoviesCaption,
+  SortType,
   EmotionType
 };
