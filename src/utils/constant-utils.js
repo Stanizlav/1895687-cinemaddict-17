@@ -43,6 +43,11 @@ const EmotionType = {
   ANGRY: 'angry'
 };
 
+const KeyCode = {
+  ESC : 27,
+  ENTER : 13
+};
+
 export{
   UpdateType,
   UserAction,
@@ -50,5 +55,6 @@ export{
   FilterType,
   NoMoviesCaption,
   SortType,
-  EmotionType
+  EmotionType,
+  KeyCode
 };

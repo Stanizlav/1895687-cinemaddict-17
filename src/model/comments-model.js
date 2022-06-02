@@ -13,16 +13,16 @@ export default class CommentsModel extends Observable{
     this._notify(UpdateType.MINOR);
   }
 
-  addComment = (updateType, comment) => {
+  addComment = (updateType, comment, movie) => {
     const indexLast = this.#comments.length-1;
     const id = this.#comments[indexLast].id + 1;
     this.#comments.push({...comment, id});
-
-    this._notify(updateType, comment);
+    const updatedMovie = { ...movie, comments: [...movie.comments, id] };
+    this._notify(updateType, updatedMovie);
   };
 
-  removeComment = (updateType, update) => {
-    const index = this.#comments.findIndex((comment) => comment.id === update.id);
+  removeComment = (updateType, id, movie) => {
+    const index = this.#comments.findIndex((comment) => comment.id === id);
 
     if(index === -1){
       throw new Error('There is no corresponding comment to remove');
@@ -33,6 +33,20 @@ export default class CommentsModel extends Observable{
       ...this.#comments.slice(index + 1)
     ];
 
-    this._notify(updateType, update);
+    this._notify(updateType, this.#getTheCommentFreeMovie(movie, id));
+  };
+
+  #getTheCommentFreeMovie = (movie, commentId) => {
+    const index = movie.comments.findIndex((id) => id === commentId);
+    if(index === -1){
+      throw new Error('There is no corresponding comment to remove');
+    }
+    const comments = [
+      ...movie.comments.slice(0, index),
+      ...movie.comments.slice(index+1)
+    ];
+    return {...movie, comments};
   };
 }
+
+

@@ -181,7 +181,10 @@ export default class FilmInfoView extends AbstractStatefulView{
 
   static convertStateToData = (state) => ({
     movie: { ...state.movie },
-    commentsList: { ...state.commentsList }
+    comment: {
+      comment: state.typedComment,
+      emotion: state.setEmotion
+    }
   });
 
 
@@ -221,6 +224,8 @@ export default class FilmInfoView extends AbstractStatefulView{
     return this.element.querySelector('textarea.film-details__comment-input');
   }
 
+  get form() { return this.element.querySelector('form'); }
+
   get scrollOffset() { return this.element.scrollTop; }
   set scrollOffset(value) { this.element.scrollTop = value; }
 
@@ -229,6 +234,20 @@ export default class FilmInfoView extends AbstractStatefulView{
   //#endregion
 
   resetComponent = (movie, commentsList) => this.updateElement(FilmInfoView.convertDataToState(movie, commentsList));
+
+  submitForm = () => {
+    this.form.submit();
+  };
+
+  setSubmitHandler = (callback) => {
+    this._callback.submit = callback;
+    this.form.addEventListener('submit', this.#submitHandler);
+  };
+
+  #submitHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.submit(FilmInfoView.convertStateToData(this._state));
+  };
 
   setCommentsDeleteClickHandler = (callback) => {
     this._callback.commentDelete = callback;
@@ -243,7 +262,7 @@ export default class FilmInfoView extends AbstractStatefulView{
   #commentDeleteClickHandler = (evt) => {
     const commentData = {
       commentId: Number(evt.target.id),
-      movieId: this._state.movie.id
+      movie: this._state.movie
     };
     this._callback.commentDelete(commentData);
   };
@@ -313,6 +332,7 @@ export default class FilmInfoView extends AbstractStatefulView{
     this.alreadyWatchedButton.addEventListener('click', this.#alreadyWatchedClickHandler);
     this.addToFavoritesButton.addEventListener('click', this.#addToFavoritesClickHandler);
     this.#setEachCommentDeleteClickHandler();
+    this.form.addEventListener('submit', this.#submitHandler);
   };
 
   #setInnerHandlers = () => {

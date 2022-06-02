@@ -7,6 +7,7 @@ import ContentWrapperView from '../view/content-wrapper-view.js';
 import { NoMoviesCaption, SortType, UpdateType, UserAction } from '../utils/constant-utils.js';
 import { filterMovies } from '../utils/filter-utils.js';
 import { sortMovies } from '../utils/sort-utils.js';
+import CommentsPresenter from './comments-presenter.js';
 
 const MOVIES_COUNT_PER_PORTION = 5;
 const MOVIES_EXTRA_COUNT = 2;
@@ -30,6 +31,7 @@ export default class MoviesListPresenter{
   #moviesModel = null;
   #commentsModel = null;
   #filterModel = null;
+  #commentsPresenter = null;
   #moviesIdListSortedByRate = null;
   #moviesIdListSortedByComments = null;
   #sortType = SortType.DEFAULT;
@@ -41,6 +43,7 @@ export default class MoviesListPresenter{
     this.#filterModel = filterModel;
     this.#moviesModel.addObserver(this.#modelEventHandler);
     this.#filterModel.addObserver(this.#modelEventHandler);
+    this.#commentsPresenter = new CommentsPresenter(this.#commentsModel, this.#moviesModel);
   }
 
   init = () => {
@@ -67,11 +70,10 @@ export default class MoviesListPresenter{
         this.#moviesModel.updateMovie(updateType, update);
         break;
       case UserAction.ADD_COMMENT :
-        //
+        this.#commentsModel.addComment(updateType, update.comment, update.movie);
         break;
       case UserAction.REMOVE_COMMENT :
-        this.#commentsModel.removeComment(updateType, {id: update.commentId});
-        this.#moviesModel.removeComment(updateType, update.movieId, update.commentId);
+        this.#commentsModel.removeComment(updateType, update.commentId, update.movie);
         break;
       default:
         throw new Error('Unknown user action!');

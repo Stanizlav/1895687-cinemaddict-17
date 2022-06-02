@@ -1,5 +1,5 @@
 import { remove, render, replace } from '../framework/render.js';
-import { FilterType, StyleClass, UpdateType, UserAction } from '../utils/constant-utils.js';
+import { FilterType, KeyCode, StyleClass, UpdateType, UserAction } from '../utils/constant-utils.js';
 import FilmCardView from '../view/film-card-view.js';
 import FilmInfoView from '../view/film-info-view.js';
 
@@ -64,6 +64,7 @@ export default class MoviePresenter{
     this.#filmInfoComponent.setCloseButtonClickHandler(this.#filmInfoCloseButtonClickHandler);
 
     this.#filmInfoComponent.setCommentsDeleteClickHandler(this.#commentDeletionHandler);
+    this.#filmInfoComponent.setSubmitHandler(this.#commentAdditionHandler);
   };
 
   #filmCardLinkClickHandler = () => {
@@ -75,9 +76,12 @@ export default class MoviePresenter{
   };
 
   #keyDownHandler = (evt) => {
-    if(evt.key === 'Escape'){
+    if(evt.keyCode === KeyCode.ESC){
       evt.preventDefault();
       this.collapseExtensive();
+    }
+    if(evt.ctrlKey && evt.keyCode === KeyCode.ENTER){
+      this.#filmInfoComponent.submitForm();
     }
   };
 
@@ -143,6 +147,10 @@ export default class MoviePresenter{
 
   #commentDeletionHandler = (commentData) => {
     this.#changeData(UserAction.REMOVE_COMMENT, UpdateType.PATCH, commentData);
+  };
+
+  #commentAdditionHandler = (commentData) => {
+    this.changeData(UserAction.ADD_COMMENT, UpdateType.PATCH, commentData);
   };
 
 }
