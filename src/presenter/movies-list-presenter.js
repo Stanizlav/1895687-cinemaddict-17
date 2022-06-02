@@ -70,7 +70,8 @@ export default class MoviesListPresenter{
         //
         break;
       case UserAction.REMOVE_COMMENT :
-        //
+        this.#commentsModel.removeComment(updateType, {id: update.commentId});
+        this.#moviesModel.removeComment(updateType, update.movieId, update.commentId);
         break;
       default:
         throw new Error('Unknown user action!');
@@ -99,14 +100,15 @@ export default class MoviesListPresenter{
   };
 
   #reinitMoviePresenters(movie){
+    const commentsList = this.#getRelatedCommentsList(movie);
     if(this.#moviesPresenters.has(movie.id)){
-      this.#moviesPresenters.get(movie.id).init(movie);
+      this.#moviesPresenters.get(movie.id).init(movie, commentsList);
     }
     if(this.#topMoviesPresenters.has(movie.id)){
-      this.#topMoviesPresenters.get(movie.id).init(movie);
+      this.#topMoviesPresenters.get(movie.id).init(movie, commentsList);
     }
     if(this.#popularMoviesPresenters.has(movie.id)){
-      this.#popularMoviesPresenters.get(movie.id).init(movie);
+      this.#popularMoviesPresenters.get(movie.id).init(movie, commentsList);
     }
   }
 
@@ -119,8 +121,8 @@ export default class MoviesListPresenter{
   #renderMovie = (index, container, presenters) => {
     const movie = this.movies[index];
     const relatedCommentsList = this.#getRelatedCommentsList(movie);
-    const moviePresenter = new MoviePresenter(container, this.#viewActionHandler, this.#prepareOpeningExtensive, this.filter, relatedCommentsList);
-    moviePresenter.init(movie);
+    const moviePresenter = new MoviePresenter(container, this.#viewActionHandler, this.#prepareOpeningExtensive, this.filter);
+    moviePresenter.init(movie, relatedCommentsList);
     presenters.set(movie.id, moviePresenter);
   };
 

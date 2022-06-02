@@ -22,7 +22,7 @@ export default class CommentsModel extends Observable{
   };
 
   removeComment = (updateType, update) => {
-    const index = this.#comments.findIndex((movie) => movie.id === update.id);
+    const index = this.#comments.findIndex((comment) => comment.id === update.id);
 
     if(index === -1){
       throw new Error('There is no corresponding comment to remove');

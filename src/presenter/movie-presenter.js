@@ -14,16 +14,16 @@ export default class MoviePresenter{
   #filmInfoComponent = null;
   #filter = null;
 
-  constructor(containerElement, changeData, prepareOpeningExtensive, filter, relatedCommentsList){
+  constructor(containerElement, changeData, prepareOpeningExtensive, filter){
     this.#containerElement = containerElement;
     this.#changeData = changeData;
     this.#prepareOpeningExtensive = prepareOpeningExtensive;
     this.#filter = filter;
-    this.#commentsList = relatedCommentsList;
   }
 
-  init = (movie) => {
+  init = (movie, relatedCommentsList) => {
     this.#movie = movie;
+    this.#commentsList = relatedCommentsList;
     const previousFilmCardComponent = this.#filmCardComponent;
     const previousFilmInfoComponent = this.#filmInfoComponent;
 
@@ -62,6 +62,8 @@ export default class MoviePresenter{
 
     this.#filmCardComponent.setLinkClickHandler(this.#filmCardLinkClickHandler);
     this.#filmInfoComponent.setCloseButtonClickHandler(this.#filmInfoCloseButtonClickHandler);
+
+    this.#filmInfoComponent.setCommentsDeleteClickHandler(this.#commentDeletionHandler);
   };
 
   #filmCardLinkClickHandler = () => {
@@ -137,6 +139,10 @@ export default class MoviePresenter{
         favorite: !this.#movie.userDetails.favorite
       }
     });
+  };
+
+  #commentDeletionHandler = (commentData) => {
+    this.#changeData(UserAction.REMOVE_COMMENT, UpdateType.PATCH, commentData);
   };
 
 }

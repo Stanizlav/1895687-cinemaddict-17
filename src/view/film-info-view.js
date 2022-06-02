@@ -13,7 +13,7 @@ const createEmojiTemplate = (emotion) => emotion ?
 
 const createCommentTemplate = (commentObject) => {
 
-  const { author, comment, date, emotion } = commentObject;
+  const { id, author, comment, date, emotion } = commentObject;
   const formatedDate = getCommentDate(date);
   const emoji = createEmojiTemplate(emotion);
   return (
@@ -24,7 +24,7 @@ const createCommentTemplate = (commentObject) => {
         <p class="film-details__comment-info">
           <span class="film-details__comment-author">${ author }</span>
           <span class="film-details__comment-day">${ formatedDate }</span>
-          <button class="film-details__comment-delete">Delete</button>
+          <button id="${ id }" type="button" class="film-details__comment-delete">Delete</button>
         </p>
       </div>
     </li>`
@@ -230,6 +230,24 @@ export default class FilmInfoView extends AbstractStatefulView{
 
   resetComponent = (movie, commentsList) => this.updateElement(FilmInfoView.convertDataToState(movie, commentsList));
 
+  setCommentsDeleteClickHandler = (callback) => {
+    this._callback.commentDelete = callback;
+    this.#setEachCommentDeleteClickHandler();
+  };
+
+  #setEachCommentDeleteClickHandler = () => {
+    const deleteButtons = this.element.querySelectorAll('.film-details__comment-delete');
+    deleteButtons.forEach((button)=>button.addEventListener('click', this.#commentDeleteClickHandler));
+  };
+
+  #commentDeleteClickHandler = (evt) => {
+    const commentData = {
+      commentId: Number(evt.target.id),
+      movieId: this._state.movie.id
+    };
+    this._callback.commentDelete(commentData);
+  };
+
   setCloseButtonClickHandler = (callback) => {
     this._callback.closeButtonClick = callback;
     this.closeButton.addEventListener('click', this.#closeButtonClickHandler);
@@ -294,6 +312,7 @@ export default class FilmInfoView extends AbstractStatefulView{
     this.addToWatchlistButton.addEventListener('click', this.#addToWatchlistClickHandler);
     this.alreadyWatchedButton.addEventListener('click', this.#alreadyWatchedClickHandler);
     this.addToFavoritesButton.addEventListener('click', this.#addToFavoritesClickHandler);
+    this.#setEachCommentDeleteClickHandler();
   };
 
   #setInnerHandlers = () => {
