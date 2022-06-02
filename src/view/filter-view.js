@@ -51,9 +51,10 @@ export default class FilterView extends AbstractView{
   };
 
   #filterSelectionHandler = (evt) => {
-    evt.preventDefault();
-    if(evt.target.matches('a')){
-      const chosenFilterType = getFilterTypeFromLink(evt.target.href);
+    const link = evt.target.closest('a');
+    if(link){
+      evt.preventDefault();
+      const chosenFilterType = getFilterTypeFromLink(link.href);
       this._callback.filterSelect(chosenFilterType);
       evt.stopPropagation();
     }
