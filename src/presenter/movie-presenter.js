@@ -1,5 +1,5 @@
 import { remove, render, replace } from '../framework/render.js';
-import { StyleClass, UpdateType, UserAction } from '../utils/constant-utils.js';
+import { FilterType, StyleClass, UpdateType, UserAction } from '../utils/constant-utils.js';
 import FilmCardView from '../view/film-card-view.js';
 import FilmInfoView from '../view/film-info-view.js';
 
@@ -12,11 +12,13 @@ export default class MoviePresenter{
   #commentsList = null;
   #filmCardComponent = null;
   #filmInfoComponent = null;
+  #filter = null;
 
-  constructor(containerElement, changeData, prepareOpeningExtensive, relatedCommentsList){
+  constructor(containerElement, changeData, prepareOpeningExtensive, filter, relatedCommentsList){
     this.#containerElement = containerElement;
     this.#changeData = changeData;
     this.#prepareOpeningExtensive = prepareOpeningExtensive;
+    this.#filter = filter;
     this.#commentsList = relatedCommentsList;
   }
 
@@ -79,7 +81,7 @@ export default class MoviePresenter{
 
   collapseExtensive = () => {
     if(this.#filmInfoComponent.isOpen){
-      this.#filmInfoComponent.resetView(this.#movie, this.#commentsList);
+      this.#filmInfoComponent.resetComponent(this.#movie, this.#commentsList);
       this.#filmInfoComponent.element.remove();
       document.body.classList.remove(StyleClass.HIDING_SCROLL_CLASS);
       document.removeEventListener('keydown', this.#keyDownHandler);
@@ -105,7 +107,8 @@ export default class MoviePresenter{
   };
 
   #addToWatchlistClickHandler = () => {
-    this.#changeData(UserAction.UPDATE_MOVIE, UpdateType.PATCH, {
+    const updateType = this.#filter === FilterType.WATCHLIST ? UpdateType.MINOR : UpdateType.PATCH;
+    this.#changeData(UserAction.UPDATE_MOVIE, updateType, {
       ...this.#movie,
       userDetails:{
         ...this.#movie.userDetails,
@@ -115,7 +118,8 @@ export default class MoviePresenter{
   };
 
   #alreadyWatchedClickHandler = () => {
-    this.#changeData(UserAction.UPDATE_MOVIE, UpdateType.PATCH, {
+    const updateType = this.#filter === FilterType.HISTORY ? UpdateType.MINOR : UpdateType.PATCH;
+    this.#changeData(UserAction.UPDATE_MOVIE, updateType, {
       ...this.#movie,
       userDetails:{
         ...this.#movie.userDetails,
@@ -125,7 +129,8 @@ export default class MoviePresenter{
   };
 
   #addToFavoritesClickHandler = () => {
-    this.#changeData(UserAction.UPDATE_MOVIE, UpdateType.PATCH, {
+    const updateType = this.#filter === FilterType.FAVORITES ? UpdateType.MINOR : UpdateType.PATCH;
+    this.#changeData(UserAction.UPDATE_MOVIE, updateType, {
       ...this.#movie,
       userDetails:{
         ...this.#movie.userDetails,

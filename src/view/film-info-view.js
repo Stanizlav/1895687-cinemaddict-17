@@ -228,7 +228,7 @@ export default class FilmInfoView extends AbstractStatefulView{
 
   //#endregion
 
-  resetView = (movie, commentsList) => this.updateElement(FilmInfoView.convertDataToState(movie, commentsList));
+  resetComponent = (movie, commentsList) => this.updateElement(FilmInfoView.convertDataToState(movie, commentsList));
 
   setCloseButtonClickHandler = (callback) => {
     this._callback.closeButtonClick = callback;

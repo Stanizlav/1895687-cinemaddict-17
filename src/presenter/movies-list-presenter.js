@@ -4,7 +4,7 @@ import SorterView from '../view/sorter-view.js';
 import ShowMoreButtonView from '../view/show-more-button-view';
 import ContentGroupView from '../view/content-group-view.js';
 import ContentWrapperView from '../view/content-wrapper-view.js';
-import { FilterType, NoMoviesCaption, SortType, UpdateType, UserAction } from '../utils/constant-utils.js';
+import { NoMoviesCaption, SortType, UpdateType, UserAction } from '../utils/constant-utils.js';
 import { filterMovies } from '../utils/filter-utils.js';
 import { sortMovies } from '../utils/sort-utils.js';
 
@@ -64,10 +64,7 @@ export default class MoviesListPresenter{
   #viewActionHandler = (userAction, updateType, update) => {
     switch (userAction){
       case UserAction.UPDATE_MOVIE :
-        this.#moviesModel.updateMovie(
-          this.filter !== FilterType.ALL ? UpdateType.MINOR : updateType,
-          update
-        );
+        this.#moviesModel.updateMovie(updateType, update);
         break;
       case UserAction.ADD_COMMENT :
         //
@@ -122,7 +119,7 @@ export default class MoviesListPresenter{
   #renderMovie = (index, container, presenters) => {
     const movie = this.movies[index];
     const relatedCommentsList = this.#getRelatedCommentsList(movie);
-    const moviePresenter = new MoviePresenter(container, this.#viewActionHandler, this.#prepareOpeningExtensive, relatedCommentsList);
+    const moviePresenter = new MoviePresenter(container, this.#viewActionHandler, this.#prepareOpeningExtensive, this.filter, relatedCommentsList);
     moviePresenter.init(movie);
     presenters.set(movie.id, moviePresenter);
   };
