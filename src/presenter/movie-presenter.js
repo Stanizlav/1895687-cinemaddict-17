@@ -150,7 +150,7 @@ export default class MoviePresenter{
   };
 
   #commentAdditionHandler = (commentData) => {
-    this.changeData(UserAction.ADD_COMMENT, UpdateType.PATCH, commentData);
+    this.#changeData(UserAction.ADD_COMMENT, UpdateType.PATCH, commentData);
   };
 
 }

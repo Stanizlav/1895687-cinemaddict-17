@@ -171,6 +171,7 @@ const createFilmInfoTemplate = ({movie, commentsList, setEmotion, typedComment})
             </div>
           </section>
         </div>
+        <button type="submit" class = "visually-hidden"></button>
       </form>
     </section>`
   );
@@ -236,7 +237,7 @@ export default class FilmInfoView extends AbstractStatefulView{
   resetComponent = (movie, commentsList) => this.updateElement(FilmInfoView.convertDataToState(movie, commentsList));
 
   submitForm = () => {
-    this.form.submit();
+    this.element.querySelector('button[type="submit"]').click();
   };
 
   setSubmitHandler = (callback) => {
