@@ -1,6 +1,7 @@
 import { convertDuration, getCommentDate, getHumanisedDate } from '../utils/date-utils.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { EmotionType } from '../utils/constant-utils.js';
+import he from 'he';
 
 const createGenreTemplate = (genre) => `<span class="film-details__genre">${ genre }</span>`;
 
@@ -20,7 +21,7 @@ const createCommentTemplate = (commentObject) => {
     `<li class="film-details__comment">
       <span class="film-details__comment-emoji">${ emoji }</span>
       <div>
-        <p class="film-details__comment-text">${ comment }</p>
+        <p class="film-details__comment-text">${ he.encode(comment) }</p>
         <p class="film-details__comment-info">
           <span class="film-details__comment-author">${ author }</span>
           <span class="film-details__comment-day">${ formatedDate }</span>
