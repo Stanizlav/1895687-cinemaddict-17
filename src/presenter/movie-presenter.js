@@ -1,8 +1,7 @@
 import { remove, render, replace } from '../framework/render.js';
+import { FilterType, KeyCode, StyleClass, UpdateType, UserAction } from '../utils/constant-utils.js';
 import FilmCardView from '../view/film-card-view.js';
 import FilmInfoView from '../view/film-info-view.js';
-
-const HIDING_SCROLL_CLASS = 'hide-overflow';
 
 export default class MoviePresenter{
   #containerElement = null;
@@ -13,16 +12,18 @@ export default class MoviePresenter{
   #commentsList = null;
   #filmCardComponent = null;
   #filmInfoComponent = null;
+  #filter = null;
 
-  constructor(containerElement, changeData, prepareOpeningExtensive, relatedCommentsList){
+  constructor(containerElement, changeData, prepareOpeningExtensive, filter){
     this.#containerElement = containerElement;
     this.#changeData = changeData;
     this.#prepareOpeningExtensive = prepareOpeningExtensive;
-    this.#commentsList = relatedCommentsList;
+    this.#filter = filter;
   }
 
-  init = (movie) => {
+  init = (movie, relatedCommentsList) => {
     this.#movie = movie;
+    this.#commentsList = relatedCommentsList;
     const previousFilmCardComponent = this.#filmCardComponent;
     const previousFilmInfoComponent = this.#filmInfoComponent;
 
@@ -61,6 +62,9 @@ export default class MoviePresenter{
 
     this.#filmCardComponent.setLinkClickHandler(this.#filmCardLinkClickHandler);
     this.#filmInfoComponent.setCloseButtonClickHandler(this.#filmInfoCloseButtonClickHandler);
+
+    this.#filmInfoComponent.setCommentsDeleteClickHandler(this.#commentDeletionHandler);
+    this.#filmInfoComponent.setSubmitHandler(this.#commentAdditionHandler);
   };
 
   #filmCardLinkClickHandler = () => {
@@ -72,19 +76,31 @@ export default class MoviePresenter{
   };
 
   #keyDownHandler = (evt) => {
-    if(evt.key === 'Escape'){
+    if(evt.keyCode === KeyCode.ESC){
       evt.preventDefault();
       this.collapseExtensive();
+    }
+    if(evt.ctrlKey && evt.keyCode === KeyCode.ENTER){
+      this.#filmInfoComponent.submitForm();
     }
   };
 
   collapseExtensive = () => {
     if(this.#filmInfoComponent.isOpen){
-      this.#filmInfoComponent.reset(this.#movie, this.#commentsList);
+      this.#filmInfoComponent.resetComponent(this.#movie, this.#commentsList);
       this.#filmInfoComponent.element.remove();
-      document.body.classList.remove(HIDING_SCROLL_CLASS);
+      document.body.classList.remove(StyleClass.HIDING_SCROLL_CLASS);
       document.removeEventListener('keydown', this.#keyDownHandler);
     }
+  };
+
+  destroyComponents = () => {
+    if(this.#filmInfoComponent.isOpen){
+      document.body.classList.remove(StyleClass.HIDING_SCROLL_CLASS);
+      document.removeEventListener('keydown', this.#keyDownHandler);
+    }
+    remove(this.#filmInfoComponent);
+    remove(this.#filmCardComponent);
   };
 
   #filmInfoCloseButtonClickHandler = () => this.collapseExtensive();
@@ -92,12 +108,13 @@ export default class MoviePresenter{
   #renderFilmInfo = () => {
     this.#prepareOpeningExtensive();
     document.body.append(this.#filmInfoComponent.element);
-    document.body.classList.add(HIDING_SCROLL_CLASS);
+    document.body.classList.add(StyleClass.HIDING_SCROLL_CLASS);
     document.addEventListener('keydown', this.#keyDownHandler);
   };
 
   #addToWatchlistClickHandler = () => {
-    this.#changeData({
+    const updateType = this.#filter === FilterType.WATCHLIST ? UpdateType.MINOR : UpdateType.PATCH;
+    this.#changeData(UserAction.UPDATE_MOVIE, updateType, {
       ...this.#movie,
       userDetails:{
         ...this.#movie.userDetails,
@@ -107,7 +124,8 @@ export default class MoviePresenter{
   };
 
   #alreadyWatchedClickHandler = () => {
-    this.#changeData({
+    const updateType = this.#filter === FilterType.HISTORY ? UpdateType.MINOR : UpdateType.PATCH;
+    this.#changeData(UserAction.UPDATE_MOVIE, updateType, {
       ...this.#movie,
       userDetails:{
         ...this.#movie.userDetails,
@@ -117,13 +135,22 @@ export default class MoviePresenter{
   };
 
   #addToFavoritesClickHandler = () => {
-    this.#changeData({
+    const updateType = this.#filter === FilterType.FAVORITES ? UpdateType.MINOR : UpdateType.PATCH;
+    this.#changeData(UserAction.UPDATE_MOVIE, updateType, {
       ...this.#movie,
       userDetails:{
         ...this.#movie.userDetails,
         favorite: !this.#movie.userDetails.favorite
       }
     });
+  };
+
+  #commentDeletionHandler = (commentData) => {
+    this.#changeData(UserAction.REMOVE_COMMENT, UpdateType.PATCH, commentData);
+  };
+
+  #commentAdditionHandler = (commentData) => {
+    this.#changeData(UserAction.ADD_COMMENT, UpdateType.PATCH, commentData);
   };
 
 }
