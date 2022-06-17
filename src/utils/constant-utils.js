@@ -1,4 +1,5 @@
 const UpdateType = {
+  INIT : 'INIT',
   PATCH : 'PATCH',
   MINOR : 'MINOR',
   MAJOR : 'MAJOR'
@@ -48,6 +49,14 @@ const KeyCode = {
   ENTER : 13
 };
 
+const Method = {
+  PUT : 'PUT',
+  GET : 'GET'
+};
+
+const AUTHORIZATION = 'Basic 1jflkawksjmdfl9';
+const END_POINT = 'https://17.ecmascript.pages.academy/cinemaddict';
+
 export{
   UpdateType,
   UserAction,
@@ -56,5 +65,8 @@ export{
   NoMoviesCaption,
   SortType,
   EmotionType,
-  KeyCode
+  KeyCode,
+  Method,
+  AUTHORIZATION,
+  END_POINT
 };

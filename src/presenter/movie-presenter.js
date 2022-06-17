@@ -1,4 +1,5 @@
 import { remove, render, replace } from '../framework/render.js';
+import CommentsModel from '../model/comments-model.js';
 import { FilterType, KeyCode, StyleClass, UpdateType, UserAction } from '../utils/constant-utils.js';
 import FilmCardView from '../view/film-card-view.js';
 import FilmInfoView from '../view/film-info-view.js';
@@ -9,10 +10,10 @@ export default class MoviePresenter{
   #prepareOpeningExtensive = null;
 
   #movie = null;
-  #commentsList = null;
   #filmCardComponent = null;
   #filmInfoComponent = null;
   #filter = null;
+  #commentsModel = null;
 
   constructor(containerElement, changeData, prepareOpeningExtensive, filter){
     this.#containerElement = containerElement;
@@ -21,15 +22,13 @@ export default class MoviePresenter{
     this.#filter = filter;
   }
 
-  init = (movie, relatedCommentsList) => {
+  init = (movie) => {
     this.#movie = movie;
-    this.#commentsList = relatedCommentsList;
+
     const previousFilmCardComponent = this.#filmCardComponent;
-    const previousFilmInfoComponent = this.#filmInfoComponent;
 
     this.#filmCardComponent = new FilmCardView(this.#movie);
-    this.#filmInfoComponent = new FilmInfoView(this.#movie, this.#commentsList);
-    this.#setHandlers();
+    this.#setCardHandlers();
 
     if(previousFilmCardComponent === null){
       this.#renderFilmCard();
@@ -39,40 +38,71 @@ export default class MoviePresenter{
     if(this.#containerElement.contains(previousFilmCardComponent.element)){
       replace(this.#filmCardComponent, previousFilmCardComponent);
     }
-    if(previousFilmInfoComponent.isOpen){
-      const scrollOffset = previousFilmInfoComponent.scrollOffset;
-      replace(this.#filmInfoComponent, previousFilmInfoComponent);
-      this.#filmInfoComponent.scrollOffset = scrollOffset;
+    if(this.#filmInfoComponent && this.#filmInfoComponent.isOpen){
+      this.#rerenderFilmInfo();
     }
     remove(previousFilmCardComponent);
-    remove(previousFilmInfoComponent);
-
-
   };
 
-  #setHandlers = () => {
+  #renderFilmInfo = () => {
+    this.#prepareOpeningExtensive();
+    this.#commentsModel = new CommentsModel(this.#movie.id);
+    this.#commentsModel.addObserver(this.#commentsModelEventHandler);
+    this.#commentsModel.init();
+    this.#filmInfoComponent = new FilmInfoView(this.#movie, this.#commentsModel.comments);
+    this.#setExtensiveHandlers();
+    document.body.append(this.#filmInfoComponent.element);
+    document.body.classList.add(StyleClass.HIDING_SCROLL_CLASS);
+    document.addEventListener('keydown', this.#keyDownHandler);
+  };
+
+  #rerenderFilmInfo = () => {
+    const scrollOffset = this.#filmInfoComponent.isOpen ? this.#filmInfoComponent.scrollOffset : 0;
+    this.#filmInfoComponent.resetComponent(this.#movie, this.#commentsModel.comments);
+    this.#filmInfoComponent.scrollOffset = scrollOffset;
+  };
+
+  collapseExtensive = () => {
+    if(this.#filmInfoComponent && this.#filmInfoComponent.isOpen){
+      this.#filmInfoComponent.resetComponent(this.#movie, this.#commentsModel.comments);
+      this.#filmInfoComponent.element.remove();
+      document.body.classList.remove(StyleClass.HIDING_SCROLL_CLASS);
+      document.removeEventListener('keydown', this.#keyDownHandler);
+    }
+  };
+
+  #renderFilmCard = () => {
+    render(this.#filmCardComponent, this.#containerElement);
+  };
+
+  #commentsModelEventHandler = (updateType) => {
+    switch(updateType){
+      case UpdateType.INIT :
+        this.#rerenderFilmInfo();
+        break;
+      default:
+        throw new Error('Unknown update type!');
+    }
+  };
+
+  #setCardHandlers = () => {
     this.#filmCardComponent.setAddToWatchlistClickHandler(this.#addToWatchlistClickHandler);
-    this.#filmInfoComponent.setAddToWatchlistClickHandler(this.#addToWatchlistClickHandler);
-
     this.#filmCardComponent.setAlreadyWatchedClickHandler(this.#alreadyWatchedClickHandler);
-    this.#filmInfoComponent.setAlreadyWatchedClickHandler(this.#alreadyWatchedClickHandler);
-
     this.#filmCardComponent.setAddToFavoritesClickHandler(this.#addToFavoritesClickHandler);
-    this.#filmInfoComponent.setAddToFavoritesClickHandler(this.#addToFavoritesClickHandler);
-
     this.#filmCardComponent.setLinkClickHandler(this.#filmCardLinkClickHandler);
-    this.#filmInfoComponent.setCloseButtonClickHandler(this.#filmInfoCloseButtonClickHandler);
+  };
 
+  #setExtensiveHandlers = () => {
+    this.#filmInfoComponent.setAddToWatchlistClickHandler(this.#addToWatchlistClickHandler);
+    this.#filmInfoComponent.setAlreadyWatchedClickHandler(this.#alreadyWatchedClickHandler);
+    this.#filmInfoComponent.setAddToFavoritesClickHandler(this.#addToFavoritesClickHandler);
+    this.#filmInfoComponent.setCloseButtonClickHandler(this.#filmInfoCloseButtonClickHandler);
     this.#filmInfoComponent.setCommentsDeleteClickHandler(this.#commentDeletionHandler);
     this.#filmInfoComponent.setSubmitHandler(this.#commentAdditionHandler);
   };
 
   #filmCardLinkClickHandler = () => {
     this.#renderFilmInfo();
-  };
-
-  #renderFilmCard = () => {
-    render(this.#filmCardComponent, this.#containerElement);
   };
 
   #keyDownHandler = (evt) => {
@@ -82,15 +112,6 @@ export default class MoviePresenter{
     }
     if(evt.ctrlKey && evt.keyCode === KeyCode.ENTER){
       this.#filmInfoComponent.submitForm();
-    }
-  };
-
-  collapseExtensive = () => {
-    if(this.#filmInfoComponent.isOpen){
-      this.#filmInfoComponent.resetComponent(this.#movie, this.#commentsList);
-      this.#filmInfoComponent.element.remove();
-      document.body.classList.remove(StyleClass.HIDING_SCROLL_CLASS);
-      document.removeEventListener('keydown', this.#keyDownHandler);
     }
   };
 
@@ -104,13 +125,6 @@ export default class MoviePresenter{
   };
 
   #filmInfoCloseButtonClickHandler = () => this.collapseExtensive();
-
-  #renderFilmInfo = () => {
-    this.#prepareOpeningExtensive();
-    document.body.append(this.#filmInfoComponent.element);
-    document.body.classList.add(StyleClass.HIDING_SCROLL_CLASS);
-    document.addEventListener('keydown', this.#keyDownHandler);
-  };
 
   #addToWatchlistClickHandler = () => {
     const updateType = this.#filter === FilterType.WATCHLIST ? UpdateType.MINOR : UpdateType.PATCH;
