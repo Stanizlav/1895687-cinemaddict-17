@@ -27,27 +27,6 @@ export default class MoviesModel extends Observable{
     this._notify(UpdateType.INIT);
   };
 
-  // addMovie = (updateType, update) => {
-  //   this.#movies.push(update);
-
-  //   this._notify(updateType, update);
-  // };
-
-  // removeMovie = (updateType, update) => {
-  //   const index = this.#movies.findIndex((movie) => movie.id === update.id);
-
-  //   if(index === -1){
-  //     throw new Error('There is no corresponding movie to remove');
-  //   }
-
-  //   this.#movies = [
-  //     ...this.#movies.slice(0, index),
-  //     ...this.#movies.slice(index + 1)
-  //   ];
-
-  //   this._notify(updateType, update);
-  // };
-
   updateMovie = async (updateType, update) => {
     const index = this.#movies.findIndex((movie) => movie.id === update.id);
 

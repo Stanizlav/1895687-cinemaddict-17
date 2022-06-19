@@ -116,11 +116,11 @@ export default class MoviePresenter{
   };
 
   destroyComponents = () => {
-    if(this.#filmInfoComponent.isOpen){
+    if(this.#filmInfoComponent && this.#filmInfoComponent.isOpen){
       document.body.classList.remove(StyleClass.HIDING_SCROLL_CLASS);
       document.removeEventListener('keydown', this.#keyDownHandler);
+      remove(this.#filmInfoComponent);
     }
-    remove(this.#filmInfoComponent);
     remove(this.#filmCardComponent);
   };
 

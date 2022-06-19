@@ -51,7 +51,9 @@ const KeyCode = {
 
 const Method = {
   PUT : 'PUT',
-  GET : 'GET'
+  GET : 'GET',
+  POST : 'POST',
+  DELETE : 'DELETE'
 };
 
 const AUTHORIZATION = 'Basic 1jflkawksjmdfl9';
