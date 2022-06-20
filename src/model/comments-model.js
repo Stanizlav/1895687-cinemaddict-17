@@ -35,6 +35,7 @@ export default class CommentsModel extends Observable{
         ... movie,
         comments: [...response.movie.comments]
       };
+      this.#comments = response.comments;
       this._notify(updateType, updatedMovie);
     }
     catch(error){
@@ -42,10 +43,10 @@ export default class CommentsModel extends Observable{
     }
   };
 
-  removeComment = async (updateType, id, movie) => {
+  removeComment = async (updateType, commentId, movie) => {
     try{
-      await this.#commentsApiService.deleteComment(id);
-      const index = this.#comments.findIndex((comment) => Number(comment.id) === id);
+      await this.#commentsApiService.deleteComment(commentId);
+      const index = this.#comments.findIndex((comment) => Number(comment.id) === commentId);
       if(index === -1){
         throw new Error('There is no corresponding comment to remove');
       }
@@ -53,7 +54,7 @@ export default class CommentsModel extends Observable{
         ...this.#comments.slice(0, index),
         ...this.#comments.slice(index + 1)
       ];
-      const updatedMovie = this.#getTheCommentFreeMovie(movie, id);
+      const updatedMovie = this.#getTheCommentFreeMovie(movie, commentId);
       this._notify(updateType, updatedMovie);
     }
     catch(error){

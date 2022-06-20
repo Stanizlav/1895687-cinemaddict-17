@@ -39,7 +39,7 @@ export default class MoviePresenter{
       replace(this.#filmCardComponent, previousFilmCardComponent);
     }
     if(this.#filmInfoComponent && this.#filmInfoComponent.isOpen){
-      this.#initComments();
+      this.#rerenderFilmInfo();
     }
     remove(previousFilmCardComponent);
   };

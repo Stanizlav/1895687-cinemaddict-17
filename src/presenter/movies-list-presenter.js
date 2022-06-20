@@ -62,10 +62,10 @@ export default class MoviesListPresenter{
         this.#moviesModel.updateMovie(updateType, update);
         break;
       case UserAction.ADD_COMMENT :
-        this.#reinitMoviePresenters(update);
+        this.#moviesModel.updateMovie(updateType, update);
         break;
       case UserAction.DELETE_COMMENT :
-        this.#reinitMoviePresenters(update);
+        this.#moviesModel.updateMovie(updateType, update);
         break;
       default:
         throw new Error('Unknown user action!');
