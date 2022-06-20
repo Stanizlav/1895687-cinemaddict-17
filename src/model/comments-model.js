@@ -1,11 +1,15 @@
 import Observable from '../framework/observable.js';
-import { generateComment } from '../mock/comment.js';
-import { UpdateType } from '../utils/constant-utils.js';
-
-const COMMENTS_COUNT = 50;
+import CommentsApiService from '../services/comments-api-service.js';
+import { AUTHORIZATION, END_POINT, UpdateType } from '../utils/constant-utils.js';
 
 export default class CommentsModel extends Observable{
-  #comments = Array.from({ length: COMMENTS_COUNT }, generateComment);
+  #comments = [];
+  #commentsApiService = null;
+
+  constructor(movieId){
+    super();
+    this.#commentsApiService = new CommentsApiService(END_POINT, AUTHORIZATION, movieId);
+  }
 
   get comments () { return this.#comments; }
   set comments (newComments) {
@@ -13,11 +17,20 @@ export default class CommentsModel extends Observable{
     this._notify(UpdateType.MINOR);
   }
 
+  init = async () => {
+    try{
+      const comments = await this.#commentsApiService.comments;
+      this.#comments = comments.slice();
+    }
+    catch(error){
+      this.#comments = [];
+    }
+    this._notify(UpdateType.INIT);
+  };
+
   addComment = (updateType, comment, movie) => {
-    const indexLast = this.#comments.length-1;
-    const id = this.#comments[indexLast].id + 1;
-    this.#comments.push({...comment, id});
-    const updatedMovie = { ...movie, comments: [...movie.comments, id] };
+
+    const updatedMovie = { ...movie, comments: [...movie.comments, ] };
     this._notify(updateType, updatedMovie);
   };
 

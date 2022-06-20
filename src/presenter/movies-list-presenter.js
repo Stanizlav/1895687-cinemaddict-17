@@ -7,7 +7,7 @@ import ContentWrapperView from '../view/content-wrapper-view.js';
 import { NoMoviesCaption, SortType, UpdateType, UserAction } from '../utils/constant-utils.js';
 import { filterMovies } from '../utils/filter-utils.js';
 import { sortMovies } from '../utils/sort-utils.js';
-import CommentsPresenter from './comments-presenter.js';
+import LoadingView from '../view/loading-view.js';
 
 const MOVIES_COUNT_PER_PORTION = 5;
 const MOVIES_EXTRA_COUNT = 2;
@@ -22,6 +22,7 @@ export default class MoviesListPresenter{
   #popularContentGroupComponent = null;
   #contentWrapperComponent = new ContentWrapperView();
   #showMoreButtonComponent = null;
+  #loadingComponent = new LoadingView();
   #moviesPresenters = new Map();
   #topMoviesPresenters = new Map();
   #popularMoviesPresenters = new Map();
@@ -31,19 +32,17 @@ export default class MoviesListPresenter{
   #moviesModel = null;
   #commentsModel = null;
   #filterModel = null;
-  #commentsPresenter = null;
   #moviesIdListSortedByRate = null;
   #moviesIdListSortedByComments = null;
+  #isLoading = true;
   #sortType = SortType.DEFAULT;
 
-  constructor(containerElement, moviesModel, commentsModel, filterModel){
+  constructor(containerElement, moviesModel, filterModel){
     this.#containerElement = containerElement;
     this.#moviesModel = moviesModel;
-    this.#commentsModel = commentsModel;
     this.#filterModel = filterModel;
     this.#moviesModel.addObserver(this.#modelEventHandler);
     this.#filterModel.addObserver(this.#modelEventHandler);
-    this.#commentsPresenter = new CommentsPresenter(this.#commentsModel, this.#moviesModel);
   }
 
   init = () => {
@@ -59,10 +58,6 @@ export default class MoviesListPresenter{
   }
 
   get comments () { return this.#commentsModel.comments; }
-
-  #getRelatedCommentsList = (movie) => this.comments
-    .filter((element) => movie.comments.some((id) => id === element.id))
-    .sort((a, b) => a.date - b.date);
 
   #viewActionHandler = (userAction, updateType, update) => {
     switch (userAction){
@@ -96,21 +91,25 @@ export default class MoviesListPresenter{
         this.#renderComponents();
         //
         break;
+      case UpdateType.INIT :
+        this.#isLoading = false;
+        remove(this.#loadingComponent);
+        this.init();
+        break;
       default:
         throw new Error('Unknown update type!');
     }
   };
 
   #reinitMoviePresenters(movie){
-    const commentsList = this.#getRelatedCommentsList(movie);
     if(this.#moviesPresenters.has(movie.id)){
-      this.#moviesPresenters.get(movie.id).init(movie, commentsList);
+      this.#moviesPresenters.get(movie.id).init(movie);
     }
     if(this.#topMoviesPresenters.has(movie.id)){
-      this.#topMoviesPresenters.get(movie.id).init(movie, commentsList);
+      this.#topMoviesPresenters.get(movie.id).init(movie);
     }
     if(this.#popularMoviesPresenters.has(movie.id)){
-      this.#popularMoviesPresenters.get(movie.id).init(movie, commentsList);
+      this.#popularMoviesPresenters.get(movie.id).init(movie);
     }
   }
 
@@ -122,9 +121,8 @@ export default class MoviesListPresenter{
 
   #renderMovie = (index, container, presenters) => {
     const movie = this.movies[index];
-    const relatedCommentsList = this.#getRelatedCommentsList(movie);
     const moviePresenter = new MoviePresenter(container, this.#viewActionHandler, this.#prepareOpeningExtensive, this.filter);
-    moviePresenter.init(movie, relatedCommentsList);
+    moviePresenter.init(movie);
     presenters.set(movie.id, moviePresenter);
   };
 
@@ -165,7 +163,15 @@ export default class MoviesListPresenter{
     render(this.#sorterComponent, this.#containerElement);
   };
 
+  #renderLoading = () => {
+    render(this.#loadingComponent,this.#containerElement);
+  };
+
   #renderComponents = (commonMoviesCount = MOVIES_COUNT_PER_PORTION, sortType = SortType.DEFAULT) => {
+    if(this.#isLoading){
+      this.#renderLoading();
+      return;
+    }
     this.#mainContentGroupComponent = new ContentGroupView(MAIN_GROUP_CAPTION, false, true);
     render(this.#mainContentGroupComponent, this.#contentWrapperComponent.element);
     if(this.movies.length){
@@ -198,6 +204,7 @@ export default class MoviesListPresenter{
     this.#popularMoviesPresenters.clear();
     this.#contentWrapperComponent.getEmpty();
     remove(this.#sorterComponent);
+    remove(this.#loadingComponent);
     this.#moviesShownCount = 0;
   };
 
