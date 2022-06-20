@@ -28,31 +28,43 @@ export default class CommentsModel extends Observable{
     this._notify(UpdateType.INIT);
   };
 
-  addComment = (updateType, comment, movie) => {
-
-    const updatedMovie = { ...movie, comments: [...movie.comments, ] };
-    this._notify(updateType, updatedMovie);
+  addComment = async (updateType, comment, movie) => {
+    try{
+      const response = await this.#commentsApiService.addComment(comment);
+      const updatedMovie = {
+        ... movie,
+        comments: [...response.movie.comments]
+      };
+      this._notify(updateType, updatedMovie);
+    }
+    catch(error){
+      throw new Error('Can\'t add the comment');
+    }
   };
 
-  removeComment = (updateType, id, movie) => {
-    const index = this.#comments.findIndex((comment) => comment.id === id);
-
-    if(index === -1){
-      throw new Error('There is no corresponding comment to remove');
+  removeComment = async (updateType, id, movie) => {
+    try{
+      await this.#commentsApiService.deleteComment(id);
+      const index = this.#comments.findIndex((comment) => Number(comment.id) === id);
+      if(index === -1){
+        throw new Error('There is no corresponding comment to remove');
+      }
+      this.#comments = [
+        ...this.#comments.slice(0, index),
+        ...this.#comments.slice(index + 1)
+      ];
+      const updatedMovie = this.#getTheCommentFreeMovie(movie, id);
+      this._notify(updateType, updatedMovie);
     }
-
-    this.#comments = [
-      ...this.#comments.slice(0, index),
-      ...this.#comments.slice(index + 1)
-    ];
-
-    this._notify(updateType, this.#getTheCommentFreeMovie(movie, id));
+    catch(error){
+      throw new Error('Can\'t delete the comment');
+    }
   };
 
   #getTheCommentFreeMovie = (movie, commentId) => {
-    const index = movie.comments.findIndex((id) => id === commentId);
+    const index = movie.comments.findIndex((id) => Number(id) === commentId);
     if(index === -1){
-      throw new Error('There is no corresponding comment to remove');
+      throw new Error('There is no corresponding comment\'s id  to remove');
     }
     const comments = [
       ...movie.comments.slice(0, index),

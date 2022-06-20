@@ -30,7 +30,6 @@ export default class MoviesListPresenter{
   #moviesShownCount = 0;
   #containerElement = null;
   #moviesModel = null;
-  #commentsModel = null;
   #filterModel = null;
   #moviesIdListSortedByRate = null;
   #moviesIdListSortedByComments = null;
@@ -57,18 +56,16 @@ export default class MoviesListPresenter{
     return sortMovies[this.#sortType](filteredMovies);
   }
 
-  get comments () { return this.#commentsModel.comments; }
-
   #viewActionHandler = (userAction, updateType, update) => {
     switch (userAction){
       case UserAction.UPDATE_MOVIE :
         this.#moviesModel.updateMovie(updateType, update);
         break;
       case UserAction.ADD_COMMENT :
-        this.#commentsModel.addComment(updateType, update.comment, update.movie);
+        this.#reinitMoviePresenters(update);
         break;
-      case UserAction.REMOVE_COMMENT :
-        this.#commentsModel.removeComment(updateType, update.commentId, update.movie);
+      case UserAction.DELETE_COMMENT :
+        this.#reinitMoviePresenters(update);
         break;
       default:
         throw new Error('Unknown user action!');

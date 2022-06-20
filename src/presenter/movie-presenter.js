@@ -39,16 +39,20 @@ export default class MoviePresenter{
       replace(this.#filmCardComponent, previousFilmCardComponent);
     }
     if(this.#filmInfoComponent && this.#filmInfoComponent.isOpen){
-      this.#rerenderFilmInfo();
+      this.#initComments();
     }
     remove(previousFilmCardComponent);
   };
 
-  #renderFilmInfo = () => {
-    this.#prepareOpeningExtensive();
+  #initComments = () => {
     this.#commentsModel = new CommentsModel(this.#movie.id);
     this.#commentsModel.addObserver(this.#commentsModelEventHandler);
     this.#commentsModel.init();
+  };
+
+  #renderFilmInfo = () => {
+    this.#prepareOpeningExtensive();
+    this.#initComments();
     this.#filmInfoComponent = new FilmInfoView(this.#movie, this.#commentsModel.comments);
     this.#setExtensiveHandlers();
     document.body.append(this.#filmInfoComponent.element);
@@ -75,10 +79,16 @@ export default class MoviePresenter{
     render(this.#filmCardComponent, this.#containerElement);
   };
 
-  #commentsModelEventHandler = (updateType) => {
+  #commentsModelEventHandler = (updateType, update) => {
     switch(updateType){
       case UpdateType.INIT :
         this.#rerenderFilmInfo();
+        break;
+      case UpdateType.ADD_COMMENT :
+        this.#changeData(UserAction.ADD_COMMENT, UpdateType.PATCH, update);
+        break;
+      case UpdateType.DELETE_COMMENT :
+        this.#changeData(UserAction.DELETE_COMMENT, UpdateType.PATCH, update);
         break;
       default:
         throw new Error('Unknown update type!');
@@ -160,11 +170,11 @@ export default class MoviePresenter{
   };
 
   #commentDeletionHandler = (commentData) => {
-    this.#changeData(UserAction.REMOVE_COMMENT, UpdateType.PATCH, commentData);
+    this.#commentsModel.removeComment(UpdateType.DELETE_COMMENT, commentData.commentId, commentData.movie);
   };
 
   #commentAdditionHandler = (commentData) => {
-    this.#changeData(UserAction.ADD_COMMENT, UpdateType.PATCH, commentData);
+    this.#commentsModel.addComment(UpdateType.ADD_COMMENT, commentData.comment, commentData.movie);
   };
 
 }
