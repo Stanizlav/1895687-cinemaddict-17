@@ -284,6 +284,13 @@ export default class MoviesListPresenter{
     }
 
     if(restPreviousRenderedIndexes.length === MOVIES_EXTRA_COUNT){
+      if(!this.#popularMoviesPresenters.size){
+        for(const currentElement of currentRenderedIndexes){
+          this.#renderMovie(currentElement.index, this.#popularContentGroupComponent.filmsContainer, this.#popularMoviesPresenters);
+        }
+        return;
+      }
+
       if(restPreviousRenderedIndexes[0].index === currentRenderedIndexes[0].index){
         return;
       }
@@ -315,6 +322,7 @@ export default class MoviesListPresenter{
         this.#popularMoviesPresenters.clear();
         return;
       }
+      this.#popularContentGroupComponent.revealCaption();
       this.#rerenderMostCommentedSectionMovies(previousIndexes, this.#moviesIndexesListSortedByComments);
     }
   };

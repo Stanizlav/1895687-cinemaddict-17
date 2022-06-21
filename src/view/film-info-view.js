@@ -1,4 +1,4 @@
-import { convertDuration, getCommentDate, getHumanisedDate } from '../utils/date-utils.js';
+import { convertDuration, getCommentDate, getFormatedDate, getHumanisedDate } from '../utils/date-utils.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { EmotionType, ShownInfo } from '../utils/constant-utils.js';
 import he from 'he';
@@ -16,6 +16,7 @@ const createCommentTemplate = (commentObject, inabilityAttribute, isDeleting, de
 
   const { id, author, comment, date, emotion } = commentObject;
   const formatedDate = getCommentDate(date);
+  const humanisedDate = getHumanisedDate(date);
   const emoji = createEmojiTemplate(emotion);
   const buttonText = isDeleting && Number(id) === deletableCommentId ? ShownInfo.DELETING : ShownInfo.DELETE;
 
@@ -26,7 +27,7 @@ const createCommentTemplate = (commentObject, inabilityAttribute, isDeleting, de
         <p class="film-details__comment-text">${ he.encode(comment) }</p>
         <p class="film-details__comment-info">
           <span class="film-details__comment-author">${ author }</span>
-          <span class="film-details__comment-day">${ formatedDate }</span>
+          <span class="film-details__comment-day">${ formatedDate } ( ${ humanisedDate } )</span>
           <button id="${ id }" type="button" ${ inabilityAttribute } class="film-details__comment-delete">${ buttonText }</button>
         </p>
       </div>
@@ -57,7 +58,7 @@ const createFilmInfoTemplate = (state) => {
   const newCommentText = isUploading ? ShownInfo.SAVING : typedComment;
   const writersList = writers.join(', ');
   const actorsList = actors.join(', ');
-  const humanisedDate = getHumanisedDate(date);
+  const releaseDate = getFormatedDate(date);
   const duration = convertDuration(runtime);
   const genresTitle = genre.length > 1 ? 'Genres' : 'Genre';
   const genresContent = genre.map((element) => createGenreTemplate(element)).join('');
@@ -108,7 +109,7 @@ const createFilmInfoTemplate = (state) => {
                 </tr>
                 <tr class="film-details__row">
                   <td class="film-details__term">Release Date</td>
-                  <td class="film-details__cell">${ humanisedDate }</td>
+                  <td class="film-details__cell">${ releaseDate }</td>
                 </tr>
                 <tr class="film-details__row">
                   <td class="film-details__term">Runtime</td>
