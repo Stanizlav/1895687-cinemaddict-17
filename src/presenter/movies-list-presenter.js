@@ -72,6 +72,7 @@ export default class MoviesListPresenter{
         }
         break;
       case UserAction.EDIT_COMMENTS :
+        this.#setMoviePresentersUpdating(update);
         this.#blockInterface();
         try{
           await this.#moviesModel.updateMovie(updateType, update);
