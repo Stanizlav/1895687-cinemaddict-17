@@ -1,4 +1,4 @@
-import { remove, render, replace } from '../framework/render.js';
+import { remove, render, RenderPosition, replace } from '../framework/render.js';
 import CommentsModel from '../model/comments-model.js';
 import { FilterType, KeyCode, StyleClass, UpdateType, UserAction } from '../utils/constant-utils.js';
 import FilmCardView from '../view/film-card-view.js';
@@ -15,6 +15,7 @@ export default class MoviePresenter{
   #filmInfoComponent = null;
   #filter = null;
   #commentsModel = null;
+  #isExtensiveOpen = false;
 
 
   constructor(containerElement, changeData, prepareOpeningExtensive, toggleInterfaceActivity, filter){
@@ -25,7 +26,9 @@ export default class MoviePresenter{
     this.#filter = filter;
   }
 
-  init = (movie) => {
+  get isExtensiveOpen() { return  this.#isExtensiveOpen; }
+
+  init = (movie, isHeader = false) => {
     this.#movie = movie;
 
     const previousFilmCardComponent = this.#filmCardComponent;
@@ -34,7 +37,7 @@ export default class MoviePresenter{
     this.#setCardHandlers();
 
     if(previousFilmCardComponent === null){
-      this.#renderFilmCard();
+      this.#renderFilmCard(isHeader);
       return;
     }
 
@@ -100,6 +103,7 @@ export default class MoviePresenter{
     document.body.append(this.#filmInfoComponent.element);
     document.body.classList.add(StyleClass.HIDING_SCROLL_CLASS);
     document.addEventListener('keydown', this.#keyDownHandler);
+    this.#isExtensiveOpen = true;
   };
 
   #updateFilmInfoSavingScroll = (callback) => {
@@ -126,6 +130,7 @@ export default class MoviePresenter{
   };
 
   collapseExtensive = () => {
+    this.#isExtensiveOpen = false;
     if(this.#filmInfoComponent && this.#filmInfoComponent.isOpen){
       this.#filmInfoComponent.resetComponent(this.#movie, this.#commentsModel.comments);
       remove(this.#filmInfoComponent);
@@ -134,8 +139,9 @@ export default class MoviePresenter{
     }
   };
 
-  #renderFilmCard = () => {
-    render(this.#filmCardComponent, this.#containerElement);
+  #renderFilmCard = (isHeader) => {
+    const position = isHeader ? RenderPosition.AFTERBEGIN : RenderPosition.BEFOREEND;
+    render(this.#filmCardComponent, this.#containerElement, position);
   };
 
   #commentsModelEventHandler = (updateType, update) => {

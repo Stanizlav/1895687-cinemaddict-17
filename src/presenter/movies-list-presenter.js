@@ -38,8 +38,8 @@ export default class MoviesListPresenter{
   #containerElement = null;
   #moviesModel = null;
   #filterModel = null;
-  #moviesIdListSortedByRate = null;
-  #moviesIdListSortedByComments = null;
+  #moviesIndexesListSortedByRate = null;
+  #moviesIndexesListSortedByComments = null;
   #isLoading = true;
   #sortType = SortType.DEFAULT;
 
@@ -52,7 +52,6 @@ export default class MoviesListPresenter{
   }
 
   init = () => {
-    this.#initSortedIdLists();
     this.#renderComponents();
   };
 
@@ -95,14 +94,13 @@ export default class MoviesListPresenter{
   #modelEventHandler = (updateType, update) => {
     switch (updateType){
       case UpdateType.PATCH :
+        this.#rerenderMostCommentedSection();
         this.#reinitMoviePresenters(update);
         break;
       case UpdateType.MINOR :
-        this.#initSortedIdLists();
         this.#rerenderComponents();
         break;
       case UpdateType.MAJOR :
-        this.#initSortedIdLists();
         this.#clearComponents();
         this.#renderComponents();
         break;
@@ -158,10 +156,10 @@ export default class MoviesListPresenter{
     this.#popularMoviesPresenters.forEach((presenter) => presenter.collapseExtensive());
   };
 
-  #renderMovie = (index, container, presenters) => {
+  #renderMovie = (index, container, presenters, isHeader = false) => {
     const movie = this.movies[index];
     const moviePresenter = new MoviePresenter(container, this.#viewActionHandler, this.#prepareOpeningExtensive, this.#toggleInterfaceActivity, this.filter);
-    moviePresenter.init(movie);
+    moviePresenter.init(movie, isHeader);
     presenters.set(movie.id, moviePresenter);
   };
 
@@ -225,6 +223,102 @@ export default class MoviesListPresenter{
     render(this.#loadingComponent,this.#containerElement);
   };
 
+  #renderTopRatedSection = () => {
+    if(this.movies.length){
+      this.#moviesIndexesListSortedByRate = this.movies.map(
+        (element, index) => ({index, rating : element.filmInfo.totalRating})
+      );
+      this.#moviesIndexesListSortedByRate = this.#moviesIndexesListSortedByRate.sort((a, b) => b.rating - a.rating);
+      if(this.#moviesIndexesListSortedByRate[0].rating === 0){
+        this.#topContentGroupComponent.hideCaption();
+        return;
+      }
+      this.#fillGroup(0, MOVIES_EXTRA_COUNT, this.#topContentGroupComponent, this.#topMoviesPresenters, this.#moviesIndexesListSortedByRate);
+    }
+  };
+
+  #initSortedByCommentsIndexes = () => {
+    this.#moviesIndexesListSortedByComments = this.movies.map(
+      (element, index) => ({index, commentsCount: element.comments.length})
+    );
+    this.#moviesIndexesListSortedByComments = this.#moviesIndexesListSortedByComments.sort((a, b) => b.commentsCount - a.commentsCount);
+  };
+
+  #renderMostCommentedSection = () => {
+    if(this.movies.length){
+      this.#initSortedByCommentsIndexes();
+      if(this.#moviesIndexesListSortedByComments[0].commentsCount === 0){
+        this.#popularContentGroupComponent.hideCaption();
+        return;
+      }
+      this.#fillGroup(0, MOVIES_EXTRA_COUNT, this.#popularContentGroupComponent, this.#popularMoviesPresenters, this.#moviesIndexesListSortedByComments);
+    }
+  };
+
+  #deleteCardViaPresenter = (presenters, movieId) => {
+    if(presenters.has(movieId)){
+      presenters.get(movieId).destroyComponents();
+      presenters.delete(movieId);
+    }
+  };
+
+  #rerenderMostCommentedSectionMovies = (previousIndexes, currentIndexes) => {
+    if(this.movies.length < 2){
+      return;
+    }
+
+    const currentRenderedIndexes = currentIndexes.slice(0, MOVIES_EXTRA_COUNT);
+    const prevRenderedIndexes = previousIndexes.slice(0, MOVIES_EXTRA_COUNT);
+    const restPreviousRenderedIndexes = prevRenderedIndexes.slice();
+
+    for(const prevElement of prevRenderedIndexes){
+      if (!currentRenderedIndexes.some((element) => prevElement.index === element.index )){
+        this.#deleteCardViaPresenter(this.#popularMoviesPresenters, this.movies[prevElement.index].id);
+        const index = restPreviousRenderedIndexes.indexOf(prevElement);
+        restPreviousRenderedIndexes.splice(index, 1);
+      }
+    }
+    // it's good for two elements , if there are more then two then improvements are needed
+    if(currentRenderedIndexes.length>2){
+      throw new Error('Improvements must be done');
+    }
+
+    if(restPreviousRenderedIndexes.length === MOVIES_EXTRA_COUNT){
+      if(restPreviousRenderedIndexes[0].index === currentRenderedIndexes[0].index){
+        return;
+      }
+      const firstMovieIndex = restPreviousRenderedIndexes[0].index;
+      const secondMovieIndex = restPreviousRenderedIndexes[1].index;
+      const isFirstExtansiveOpen = this.#popularMoviesPresenters.get(this.movies[firstMovieIndex].id).isExtensiveOpen;
+      const indexToRerender = isFirstExtansiveOpen ? secondMovieIndex : firstMovieIndex;
+      this.#deleteCardViaPresenter(this.#popularMoviesPresenters, this.movies[indexToRerender].id);
+      this.#renderMovie(indexToRerender, this.#popularContentGroupComponent.filmsContainer, this.#popularMoviesPresenters, isFirstExtansiveOpen);
+      return;
+    }
+
+    for(const currentElement of currentRenderedIndexes){
+      if(!restPreviousRenderedIndexes.some((element) => currentElement.index === element.index)){
+        const isHeader =
+          restPreviousRenderedIndexes.length && currentElement.commentsCount > restPreviousRenderedIndexes[0].commentsCount;
+        this.#renderMovie(currentElement.index, this.#popularContentGroupComponent.filmsContainer, this.#popularMoviesPresenters, isHeader);
+      }
+    }
+  };
+
+  #rerenderMostCommentedSection = () => {
+    const previousIndexes = this.#moviesIndexesListSortedByComments;
+    if(this.movies.length){
+      this.#initSortedByCommentsIndexes();
+      if(this.#moviesIndexesListSortedByComments[0].commentsCount === 0){
+        this.#popularContentGroupComponent.hideCaption();
+        this.#popularMoviesPresenters.forEach((presenter) => presenter.destroyComponents());
+        this.#popularMoviesPresenters.clear();
+        return;
+      }
+      this.#rerenderMostCommentedSectionMovies(previousIndexes, this.#moviesIndexesListSortedByComments);
+    }
+  };
+
   #renderComponents = (commonMoviesCount = MOVIES_COUNT_PER_PORTION, sortType = SortType.DEFAULT) => {
     if(this.#isLoading){
       this.#renderLoading();
@@ -237,8 +331,8 @@ export default class MoviesListPresenter{
       this.#moviesShownCount += this.#fillGroup(0, commonMoviesCount, this.#mainContentGroupComponent, this.#moviesPresenters);
       this.#topContentGroupComponent = new ContentGroupView(TOP_GROUP_CAPTION, true);
       this.#popularContentGroupComponent = new ContentGroupView(POPULAR_GROUP_CAPTION, true);
-      this.#fillGroup(0, MOVIES_EXTRA_COUNT, this.#topContentGroupComponent, this.#topMoviesPresenters, this.#moviesIdListSortedByRate);
-      this.#fillGroup(0, MOVIES_EXTRA_COUNT, this.#popularContentGroupComponent, this.#popularMoviesPresenters, this.#moviesIdListSortedByComments);
+      this.#renderTopRatedSection();
+      this.#renderMostCommentedSection();
       if(this.movies.length > this.#moviesShownCount){
         this.#renderShowMoreButton();
       }
@@ -271,19 +365,5 @@ export default class MoviesListPresenter{
     const savedSortType = this.#sortType;
     this.#clearComponents();
     this.#renderComponents(commonMoviesShownCount, savedSortType);
-  };
-
-  #initSortedIdLists = () => {
-    if(this.movies.length){
-      this.#moviesIdListSortedByRate = this.movies.map(
-        (element, index) => ({index, rating : element.filmInfo.totalRating})
-      );
-      this.#moviesIdListSortedByRate = this.#moviesIdListSortedByRate.sort((a, b) => b.rating - a.rating);
-
-      this.#moviesIdListSortedByComments = this.movies.map(
-        (element, index) => ({index, commentsCount: element.comments.length})
-      );
-      this.#moviesIdListSortedByComments = this.#moviesIdListSortedByComments.sort((a, b) => b.commentsCount - a.commentsCount);
-    }
   };
 }

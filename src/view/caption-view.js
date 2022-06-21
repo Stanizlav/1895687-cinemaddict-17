@@ -26,7 +26,9 @@ export default class CaptionView extends AbstractView{
 
   hide = () => {
     this.#hidden = true;
-    this.element.classList.add(StyleClass.HIDDEN);
+    if(!this.element.classList.contains(StyleClass.HIDDEN)){
+      this.element.classList.add(StyleClass.HIDDEN);
+    }
   };
 
   reveal = () => {
