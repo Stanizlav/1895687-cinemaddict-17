@@ -1,6 +1,6 @@
 import { convertDuration, getCommentDate, getHumanisedDate } from '../utils/date-utils.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { EmotionType } from '../utils/constant-utils.js';
+import { EmotionType, ShownInfo } from '../utils/constant-utils.js';
 import he from 'he';
 
 const createGenreTemplate = (genre) => `<span class="film-details__genre">${ genre }</span>`;
@@ -12,11 +12,13 @@ const getCheckedAttribute = (setEmotion, examinedEmotion) => setEmotion === exam
 const createEmojiTemplate = (emotion) => emotion ?
   `<img src="images/emoji/${ emotion }.png" alt="emoji-${ emotion }" width="55" height="55">` : '';
 
-const createCommentTemplate = (commentObject) => {
+const createCommentTemplate = (commentObject, inabilityAttribute, isDeleting, deletableCommentId) => {
 
   const { id, author, comment, date, emotion } = commentObject;
   const formatedDate = getCommentDate(date);
   const emoji = createEmojiTemplate(emotion);
+  const buttonText = isDeleting && Number(id) === deletableCommentId ? ShownInfo.DELETING : ShownInfo.DELETE;
+
   return (
     `<li class="film-details__comment">
       <span class="film-details__comment-emoji">${ emoji }</span>
@@ -25,15 +27,16 @@ const createCommentTemplate = (commentObject) => {
         <p class="film-details__comment-info">
           <span class="film-details__comment-author">${ author }</span>
           <span class="film-details__comment-day">${ formatedDate }</span>
-          <button id="${ id }" type="button" class="film-details__comment-delete">Delete</button>
+          <button id="${ id }" type="button" ${ inabilityAttribute } class="film-details__comment-delete">${ buttonText }</button>
         </p>
       </div>
     </li>`
   );
 };
 
-const createFilmInfoTemplate = ({movie, commentsList, setEmotion, typedComment}) => {
+const createFilmInfoTemplate = (state) => {
 
+  const {movie, commentsList, setEmotion, typedComment, isDisabled, isDeleting, deletableCommentId, isUploading} = state;
   const { comments, filmInfo, userDetails } = movie;
   const  {
     title,
@@ -51,22 +54,25 @@ const createFilmInfoTemplate = ({movie, commentsList, setEmotion, typedComment})
   } = filmInfo;
   const { date, releaseCountry } = release;
 
+  const newCommentText = isUploading ? ShownInfo.SAVING : typedComment;
   const writersList = writers.join(', ');
   const actorsList = actors.join(', ');
   const humanisedDate = getHumanisedDate(date);
   const duration = convertDuration(runtime);
   const genresTitle = genre.length > 1 ? 'Genres' : 'Genre';
   const genresContent = genre.map((element) => createGenreTemplate(element)).join('');
-  const commentsContent = commentsList.map((element) => createCommentTemplate(element)).join('');
+  const inabilityAttribute = isDisabled ? 'disabled': '';
+  const commentsContent = commentsList.map((element) => createCommentTemplate(element, inabilityAttribute, isDeleting, deletableCommentId)).join('');
   const { watchlist, alreadyWatched, favorite } = userDetails;
   const emoji = createEmojiTemplate(setEmotion);
+
 
   return (
     `<section class="film-details">
       <form class="film-details__inner" action="" method="get">
         <div class="film-details__top-container">
           <div class="film-details__close">
-            <button class="film-details__close-btn" type="button">close</button>
+            <button class="film-details__close-btn" type="button" ${ inabilityAttribute }>close</button>
           </div>
           <div class="film-details__info-wrap">
             <div class="film-details__poster">
@@ -127,9 +133,9 @@ const createFilmInfoTemplate = ({movie, commentsList, setEmotion, typedComment})
           </div>
 
           <section class="film-details__controls">
-            <button type="button" class="film-details__control-button ${ getActivityClass(watchlist) } film-details__control-button--watchlist" id="watchlist" name="watchlist">Add to watchlist</button>
-            <button type="button" class="film-details__control-button ${ getActivityClass(alreadyWatched) } film-details__control-button--watched" id="watched" name="watched">Already watched</button>
-            <button type="button" class="film-details__control-button ${ getActivityClass(favorite) } film-details__control-button--favorite" id="favorite" name="favorite">Add to favorites</button>
+            <button type="button" class="film-details__control-button ${ getActivityClass(watchlist) } film-details__control-button--watchlist" id="watchlist" name="watchlist" ${inabilityAttribute}>Add to watchlist</button>
+            <button type="button" class="film-details__control-button ${ getActivityClass(alreadyWatched) } film-details__control-button--watched" id="watched" name="watched" ${inabilityAttribute}>Already watched</button>
+            <button type="button" class="film-details__control-button ${ getActivityClass(favorite) } film-details__control-button--favorite" id="favorite" name="favorite" ${inabilityAttribute}>Add to favorites</button>
           </section>
         </div>
 
@@ -141,30 +147,30 @@ const createFilmInfoTemplate = ({movie, commentsList, setEmotion, typedComment})
             ${ commentsContent }
             </ul>
 
-            <div class="film-details__new-comment">
+            <div class="film-details__new-comment" ${ inabilityAttribute }>
               <div class="film-details__add-emoji-label">${ emoji }</div>
 
               <label class="film-details__comment-label">
-                <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment">${ typedComment }</textarea>
+                <textarea class="film-details__comment-input" ${ inabilityAttribute } placeholder="Select reaction below and write comment here" name="comment">${ newCommentText }</textarea>
               </label>
 
               <div class="film-details__emoji-list">
-                <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-smile" value="smile" ${ getCheckedAttribute(setEmotion, EmotionType.SMILE) }>
+                <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-smile" ${ inabilityAttribute } value="smile" ${ getCheckedAttribute(setEmotion, EmotionType.SMILE) }>
                 <label class="film-details__emoji-label" for="emoji-smile">
                   <img src="./images/emoji/smile.png" width="30" height="30" alt="emoji">
                 </label>
 
-                <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-sleeping" value="sleeping" ${ getCheckedAttribute(setEmotion, EmotionType.SLEEPING) }>
+                <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-sleeping" ${ inabilityAttribute } value="sleeping" ${ getCheckedAttribute(setEmotion, EmotionType.SLEEPING) }>
                 <label class="film-details__emoji-label" for="emoji-sleeping">
                   <img src="./images/emoji/sleeping.png" width="30" height="30" alt="emoji">
                 </label>
 
-                <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-puke" value="puke" ${ getCheckedAttribute(setEmotion, EmotionType.PUKE) }>
+                <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-puke" ${ inabilityAttribute } value="puke" ${ getCheckedAttribute(setEmotion, EmotionType.PUKE) }>
                 <label class="film-details__emoji-label" for="emoji-puke">
                   <img src="./images/emoji/puke.png" width="30" height="30" alt="emoji">
                 </label>
 
-                <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-angry" value="angry" ${ getCheckedAttribute(setEmotion, EmotionType.ANGRY) }>
+                <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-angry" ${ inabilityAttribute } value="angry" ${ getCheckedAttribute(setEmotion, EmotionType.ANGRY) }>
                 <label class="film-details__emoji-label" for="emoji-angry">
                   <img src="./images/emoji/angry.png" width="30" height="30" alt="emoji">
                 </label>
@@ -172,14 +178,22 @@ const createFilmInfoTemplate = ({movie, commentsList, setEmotion, typedComment})
             </div>
           </section>
         </div>
-        <button type="submit" class = "visually-hidden"></button>
+        <button type="submit" class = "visually-hidden" ${ inabilityAttribute }></button>
       </form>
     </section>`
   );
 };
 export default class FilmInfoView extends AbstractStatefulView{
 
-  static convertDataToState = (movie, commentsList) => ({ movie, commentsList, setEmotion:'', typedComment:'' });
+  static convertDataToState = (movie, commentsList) => ({
+    movie,
+    commentsList,
+    setEmotion:'',
+    typedComment:'',
+    isDisabled: false,
+    isDeleting: false,
+    isUploading: false
+  });
 
   static convertStateToData = (state) => ({
     movie: { ...state.movie },
@@ -236,6 +250,21 @@ export default class FilmInfoView extends AbstractStatefulView{
   //#endregion
 
   resetComponent = (movie, commentsList) => this.updateElement(FilmInfoView.convertDataToState(movie, commentsList));
+
+  shakeForm = (callback) => {
+    this.shakeElement(this.form, callback);
+  };
+
+  shakeComment = (commentId, callback) => {
+    const button = this.element.querySelector(`button[id="${commentId}"]`);
+    const comment = button.closest('li');
+    this.shakeElement(comment, callback);
+  };
+
+  shakeControlButtons = (callback) => {
+    const buttonsBlock = this.element.querySelector('.film-details__controls');
+    this.shakeElement(buttonsBlock, callback);
+  };
 
   submitForm = () => {
     this.element.querySelector('button[type="submit"]').click();

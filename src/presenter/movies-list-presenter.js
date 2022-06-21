@@ -30,7 +30,6 @@ export default class MoviesListPresenter{
   #moviesShownCount = 0;
   #containerElement = null;
   #moviesModel = null;
-  #commentsModel = null;
   #filterModel = null;
   #moviesIdListSortedByRate = null;
   #moviesIdListSortedByComments = null;
@@ -57,18 +56,30 @@ export default class MoviesListPresenter{
     return sortMovies[this.#sortType](filteredMovies);
   }
 
-  get comments () { return this.#commentsModel.comments; }
-
-  #viewActionHandler = (userAction, updateType, update) => {
+  #viewActionHandler = async (userAction, updateType, update) => {
     switch (userAction){
       case UserAction.UPDATE_MOVIE :
-        this.#moviesModel.updateMovie(updateType, update);
+        this.#setMoviePresentersUpdating(update);
+        this.#blockInterface();
+        try{
+          await this.#moviesModel.updateMovie(updateType, update);
+        }
+        catch(error){
+          this.#setMoviePresentersAborting(update);
+        }
+        finally{
+          this.#unblockInterface();
+        }
         break;
-      case UserAction.ADD_COMMENT :
-        this.#commentsModel.addComment(updateType, update.comment, update.movie);
-        break;
-      case UserAction.REMOVE_COMMENT :
-        this.#commentsModel.removeComment(updateType, update.commentId, update.movie);
+      case UserAction.EDIT_COMMENTS :
+        this.#setMoviePresentersUpdating(update);
+        this.#blockInterface();
+        try{
+          await this.#moviesModel.updateMovie(updateType, update);
+        }
+        finally{
+          this.#unblockInterface();
+        }
         break;
       default:
         throw new Error('Unknown user action!');
@@ -83,13 +94,11 @@ export default class MoviesListPresenter{
       case UpdateType.MINOR :
         this.#initSortedIdLists();
         this.#rerenderComponents();
-        //
         break;
       case UpdateType.MAJOR :
         this.#initSortedIdLists();
         this.#clearComponents();
         this.#renderComponents();
-        //
         break;
       case UpdateType.INIT :
         this.#isLoading = false;
@@ -101,7 +110,7 @@ export default class MoviesListPresenter{
     }
   };
 
-  #reinitMoviePresenters(movie){
+  #reinitMoviePresenters = (movie) => {
     if(this.#moviesPresenters.has(movie.id)){
       this.#moviesPresenters.get(movie.id).init(movie);
     }
@@ -111,7 +120,31 @@ export default class MoviesListPresenter{
     if(this.#popularMoviesPresenters.has(movie.id)){
       this.#popularMoviesPresenters.get(movie.id).init(movie);
     }
-  }
+  };
+
+  #setMoviePresentersUpdating = (movie) => {
+    if(this.#moviesPresenters.has(movie.id)){
+      this.#moviesPresenters.get(movie.id).setUpdating();
+    }
+    if(this.#topMoviesPresenters.has(movie.id)){
+      this.#topMoviesPresenters.get(movie.id).setUpdating();
+    }
+    if(this.#popularMoviesPresenters.has(movie.id)){
+      this.#popularMoviesPresenters.get(movie.id).setUpdating();
+    }
+  };
+
+  #setMoviePresentersAborting = (movie) => {
+    if(this.#moviesPresenters.has(movie.id)){
+      this.#moviesPresenters.get(movie.id).setAborting();
+    }
+    if(this.#topMoviesPresenters.has(movie.id)){
+      this.#topMoviesPresenters.get(movie.id).setAborting();
+    }
+    if(this.#popularMoviesPresenters.has(movie.id)){
+      this.#popularMoviesPresenters.get(movie.id).setAborting();
+    }
+  };
 
   #prepareOpeningExtensive = () => {
     this.#moviesPresenters.forEach((presenter) => presenter.collapseExtensive());
@@ -121,9 +154,29 @@ export default class MoviesListPresenter{
 
   #renderMovie = (index, container, presenters) => {
     const movie = this.movies[index];
-    const moviePresenter = new MoviePresenter(container, this.#viewActionHandler, this.#prepareOpeningExtensive, this.filter);
+    const moviePresenter = new MoviePresenter(container, this.#viewActionHandler, this.#prepareOpeningExtensive, this.#toggleInterfaceActivity, this.filter);
     moviePresenter.init(movie);
     presenters.set(movie.id, moviePresenter);
+  };
+
+  #blockInterface = () => {
+    this.#moviesPresenters.forEach((presenter) => presenter.block());
+    this.#topMoviesPresenters.forEach((presenter) => presenter.block());
+    this.#popularMoviesPresenters.forEach((presenter) => presenter.block());
+  };
+
+  #unblockInterface = () => {
+    this.#moviesPresenters.forEach((presenter) => presenter.unblock());
+    this.#topMoviesPresenters.forEach((presenter) => presenter.unblock());
+    this.#popularMoviesPresenters.forEach((presenter) => presenter.unblock());
+  };
+
+  #toggleInterfaceActivity = (isBlocking) => {
+    if(isBlocking){
+      this.#blockInterface();
+      return;
+    }
+    this.#unblockInterface();
   };
 
   #fillGroup = (start, count, contentGroup, presenters, maskArray) => {
