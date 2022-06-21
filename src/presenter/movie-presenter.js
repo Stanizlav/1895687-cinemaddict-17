@@ -15,7 +15,6 @@ export default class MoviePresenter{
   #filmInfoComponent = null;
   #filter = null;
   #commentsModel = null;
-  #isBlocked = false;
 
 
   constructor(containerElement, changeData, prepareOpeningExtensive, toggleInterfaceActivity, filter){
@@ -47,9 +46,6 @@ export default class MoviePresenter{
     }
     remove(previousFilmCardComponent);
   };
-
-  block = () => { this.#isBlocked = true; };
-  unblock = () => { this.#isBlocked = false; };
 
   #setDeleting = (commentId) => {
     this.#toggleInterfaceActivity(true);
@@ -172,16 +168,10 @@ export default class MoviePresenter{
   };
 
   #filmCardLinkClickHandler = () => {
-    if(this.#isBlocked){
-      return;
-    }
     this.#renderFilmInfo();
   };
 
   #keyDownHandler = (evt) => {
-    if(this.#isBlocked){
-      return;
-    }
     if(evt.keyCode === KeyCode.ESC){
       evt.preventDefault();
       this.collapseExtensive();
@@ -203,9 +193,6 @@ export default class MoviePresenter{
   #filmInfoCloseButtonClickHandler = () => this.collapseExtensive();
 
   #addToWatchlistClickHandler = () => {
-    if(this.#isBlocked){
-      return;
-    }
     const updateType = this.#filter === FilterType.WATCHLIST ? UpdateType.MINOR : UpdateType.PATCH;
     this.#changeData(UserAction.UPDATE_MOVIE, updateType, {
       ...this.#movie,
@@ -217,9 +204,6 @@ export default class MoviePresenter{
   };
 
   #alreadyWatchedClickHandler = () => {
-    if(this.#isBlocked){
-      return;
-    }
     const updateType = this.#filter === FilterType.HISTORY ? UpdateType.MINOR : UpdateType.PATCH;
     this.#changeData(UserAction.UPDATE_MOVIE, updateType, {
       ...this.#movie,
@@ -231,9 +215,6 @@ export default class MoviePresenter{
   };
 
   #addToFavoritesClickHandler = () => {
-    if(this.#isBlocked){
-      return;
-    }
     const updateType = this.#filter === FilterType.FAVORITES ? UpdateType.MINOR : UpdateType.PATCH;
     this.#changeData(UserAction.UPDATE_MOVIE, updateType, {
       ...this.#movie,
@@ -251,8 +232,6 @@ export default class MoviePresenter{
     }
     catch(error){
       this.#filmInfoComponent.shakeComment(commentData.commentId, this.#resetFilmInfoState);
-    }
-    finally{
       this.#toggleInterfaceActivity(false);
     }
   };
@@ -264,10 +243,7 @@ export default class MoviePresenter{
     }
     catch(error){
       this.#filmInfoComponent.shakeForm(this.#resetFilmInfoState);
-    }
-    finally{
       this.#toggleInterfaceActivity(false);
     }
   };
-
 }

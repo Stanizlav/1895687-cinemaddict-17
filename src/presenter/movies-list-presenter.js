@@ -1,4 +1,5 @@
 import { remove, render } from '../framework/render.js';
+import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 import MoviePresenter from './movie-presenter.js';
 import SorterView from '../view/sorter-view.js';
 import ShowMoreButtonView from '../view/show-more-button-view';
@@ -8,6 +9,11 @@ import { NoMoviesCaption, SortType, UpdateType, UserAction } from '../utils/cons
 import { filterMovies } from '../utils/filter-utils.js';
 import { sortMovies } from '../utils/sort-utils.js';
 import LoadingView from '../view/loading-view.js';
+
+const TimeLimit = {
+  LOWER_LIMIT: 350,
+  UPPER_LIMIT: 1000
+};
 
 const MOVIES_COUNT_PER_PORTION = 5;
 const MOVIES_EXTRA_COUNT = 2;
@@ -26,6 +32,7 @@ export default class MoviesListPresenter{
   #moviesPresenters = new Map();
   #topMoviesPresenters = new Map();
   #popularMoviesPresenters = new Map();
+  #uiBlocker = new UiBlocker(TimeLimit.LOWER_LIMIT, TimeLimit.UPPER_LIMIT);
 
   #moviesShownCount = 0;
   #containerElement = null;
@@ -73,7 +80,6 @@ export default class MoviesListPresenter{
         break;
       case UserAction.EDIT_COMMENTS :
         this.#setMoviePresentersUpdating(update);
-        this.#blockInterface();
         try{
           await this.#moviesModel.updateMovie(updateType, update);
         }
@@ -160,15 +166,11 @@ export default class MoviesListPresenter{
   };
 
   #blockInterface = () => {
-    this.#moviesPresenters.forEach((presenter) => presenter.block());
-    this.#topMoviesPresenters.forEach((presenter) => presenter.block());
-    this.#popularMoviesPresenters.forEach((presenter) => presenter.block());
+    this.#uiBlocker.block();
   };
 
   #unblockInterface = () => {
-    this.#moviesPresenters.forEach((presenter) => presenter.unblock());
-    this.#topMoviesPresenters.forEach((presenter) => presenter.unblock());
-    this.#popularMoviesPresenters.forEach((presenter) => presenter.unblock());
+    this.#uiBlocker.unblock();
   };
 
   #toggleInterfaceActivity = (isBlocking) => {
