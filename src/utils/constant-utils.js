@@ -3,14 +3,12 @@ const UpdateType = {
   PATCH : 'PATCH',
   MINOR : 'MINOR',
   MAJOR : 'MAJOR',
-  ADD_COMMENT : 'ADD_COMMENT',
-  DELETE_COMMENT : 'DELETE_COMMENT'
+  EDIT_COMMENTS : 'EDIT_COMMENTS'
 };
 
 const UserAction = {
-  ADD_COMMENT : 'ADD_COMMENT',
-  DELETE_COMMENT : 'DELETE_COMMENT',
-  UPDATE_MOVIE : 'UPDATE_MOVIE'
+  UPDATE_MOVIE : 'UPDATE_MOVIE',
+  EDIT_COMMENTS : 'EDIT_COMMENTS'
 };
 
 const StyleClass = {
@@ -58,6 +56,12 @@ const Method = {
   DELETE : 'DELETE'
 };
 
+const ShownInfo = {
+  DELETE : 'Delete',
+  DELETING : 'Deleting...',
+  SAVING : 'Saving...'
+};
+
 const AUTHORIZATION = 'Basic 1jflkawksjmdfl9';
 const END_POINT = 'https://17.ecmascript.pages.academy/cinemaddict';
 
@@ -71,6 +75,7 @@ export{
   EmotionType,
   KeyCode,
   Method,
+  ShownInfo,
   AUTHORIZATION,
   END_POINT
 };

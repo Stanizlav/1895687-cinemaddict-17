@@ -60,6 +60,17 @@ export default class AbstractView {
       callback?.();
     }, SHAKE_ANIMATION_TIMEOUT);
   }
+
+  shakeElement(element, callback){
+    if(!this.element.contains(element)){
+      throw new Error('There is no mentioned element in the component');
+    }
+    element.classList.add(SHAKE_CLASS_NAME);
+    setTimeout(() => {
+      element.classList.remove(SHAKE_CLASS_NAME);
+      callback?.();
+    }, SHAKE_ANIMATION_TIMEOUT);
+  }
 }
 
 /**
