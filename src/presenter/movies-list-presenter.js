@@ -1,4 +1,5 @@
 import { remove, render } from '../framework/render.js';
+import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 import MoviePresenter from './movie-presenter.js';
 import SorterView from '../view/sorter-view.js';
 import ShowMoreButtonView from '../view/show-more-button-view';
@@ -14,6 +15,11 @@ const MOVIES_EXTRA_COUNT = 2;
 const MAIN_GROUP_CAPTION = 'All movies. Upcoming';
 const TOP_GROUP_CAPTION = 'Top rated';
 const POPULAR_GROUP_CAPTION = 'Most commented';
+
+const TimeLimit = {
+  LOWER_LIMIT: 350,
+  UPPER_LIMIT: 1000
+};
 
 export default class MoviesListPresenter{
   #sorterComponent = null;
@@ -35,6 +41,7 @@ export default class MoviesListPresenter{
   #moviesIdListSortedByComments = null;
   #isLoading = true;
   #sortType = SortType.DEFAULT;
+  #uiBlocker = new UiBlocker(TimeLimit.LOWER_LIMIT, TimeLimit.UPPER_LIMIT);
 
   constructor(containerElement, moviesModel, filterModel){
     this.#containerElement = containerElement;
@@ -59,8 +66,8 @@ export default class MoviesListPresenter{
   #viewActionHandler = async (userAction, updateType, update) => {
     switch (userAction){
       case UserAction.UPDATE_MOVIE :
-        this.#setMoviePresentersUpdating(update);
         this.#blockInterface();
+        this.#setMoviePresentersUpdating(update);
         try{
           await this.#moviesModel.updateMovie(updateType, update);
         }
@@ -73,7 +80,6 @@ export default class MoviesListPresenter{
         break;
       case UserAction.EDIT_COMMENTS :
         this.#setMoviePresentersUpdating(update);
-        this.#blockInterface();
         try{
           await this.#moviesModel.updateMovie(updateType, update);
         }
@@ -134,15 +140,15 @@ export default class MoviesListPresenter{
     }
   };
 
-  #setMoviePresentersAborting = (movie) => {
+  #setMoviePresentersAborting = (movie, isUnnecessaryToShakeExtensive = false) => {
     if(this.#moviesPresenters.has(movie.id)){
-      this.#moviesPresenters.get(movie.id).setAborting();
+      this.#moviesPresenters.get(movie.id).setAborting(isUnnecessaryToShakeExtensive);
     }
     if(this.#topMoviesPresenters.has(movie.id)){
-      this.#topMoviesPresenters.get(movie.id).setAborting();
+      this.#topMoviesPresenters.get(movie.id).setAborting(isUnnecessaryToShakeExtensive);
     }
     if(this.#popularMoviesPresenters.has(movie.id)){
-      this.#popularMoviesPresenters.get(movie.id).setAborting();
+      this.#popularMoviesPresenters.get(movie.id).setAborting(isUnnecessaryToShakeExtensive);
     }
   };
 
@@ -160,15 +166,11 @@ export default class MoviesListPresenter{
   };
 
   #blockInterface = () => {
-    this.#moviesPresenters.forEach((presenter) => presenter.block());
-    this.#topMoviesPresenters.forEach((presenter) => presenter.block());
-    this.#popularMoviesPresenters.forEach((presenter) => presenter.block());
+    this.#uiBlocker.block();
   };
 
   #unblockInterface = () => {
-    this.#moviesPresenters.forEach((presenter) => presenter.unblock());
-    this.#topMoviesPresenters.forEach((presenter) => presenter.unblock());
-    this.#popularMoviesPresenters.forEach((presenter) => presenter.unblock());
+    this.#uiBlocker.unblock();
   };
 
   #toggleInterfaceActivity = (isBlocking) => {
