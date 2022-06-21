@@ -207,6 +207,9 @@ export default class MoviesListPresenter{
   };
 
   #sortTypeSelectionHandler = (sortType) => {
+    if(this.#sortType === sortType){
+      return;
+    }
     this.#sortType = sortType;
     this.#rerenderComponents();
   };
