@@ -38,8 +38,8 @@ export default class MoviesListPresenter{
   #containerElement = null;
   #moviesModel = null;
   #filterModel = null;
-  #moviesIndexesListSortedByRate = null;
-  #moviesIndexesListSortedByComments = null;
+  #moviesIndexesSortedByRate = null;
+  #moviesIndexesSortedByComments = null;
   #isLoading = true;
   #sortType = SortType.DEFAULT;
 
@@ -225,33 +225,33 @@ export default class MoviesListPresenter{
 
   #renderTopRatedSection = () => {
     if(this.movies.length){
-      this.#moviesIndexesListSortedByRate = this.movies.map(
+      this.#moviesIndexesSortedByRate = this.movies.map(
         (element, index) => ({index, rating : element.filmInfo.totalRating})
       );
-      this.#moviesIndexesListSortedByRate = this.#moviesIndexesListSortedByRate.sort((a, b) => b.rating - a.rating);
-      if(this.#moviesIndexesListSortedByRate[0].rating === 0){
+      this.#moviesIndexesSortedByRate = this.#moviesIndexesSortedByRate.sort((a, b) => b.rating - a.rating);
+      if(this.#moviesIndexesSortedByRate[0].rating === 0){
         this.#topContentGroupComponent.hideCaption();
         return;
       }
-      this.#fillGroup(0, MOVIES_EXTRA_COUNT, this.#topContentGroupComponent, this.#topMoviesPresenters, this.#moviesIndexesListSortedByRate);
+      this.#fillGroup(0, MOVIES_EXTRA_COUNT, this.#topContentGroupComponent, this.#topMoviesPresenters, this.#moviesIndexesSortedByRate);
     }
   };
 
   #initSortedByCommentsIndexes = () => {
-    this.#moviesIndexesListSortedByComments = this.movies.map(
+    this.#moviesIndexesSortedByComments = this.movies.map(
       (element, index) => ({index, commentsCount: element.comments.length})
     );
-    this.#moviesIndexesListSortedByComments = this.#moviesIndexesListSortedByComments.sort((a, b) => b.commentsCount - a.commentsCount);
+    this.#moviesIndexesSortedByComments = this.#moviesIndexesSortedByComments.sort((a, b) => b.commentsCount - a.commentsCount);
   };
 
   #renderMostCommentedSection = () => {
     if(this.movies.length){
       this.#initSortedByCommentsIndexes();
-      if(this.#moviesIndexesListSortedByComments[0].commentsCount === 0){
+      if(this.#moviesIndexesSortedByComments[0].commentsCount === 0){
         this.#popularContentGroupComponent.hideCaption();
         return;
       }
-      this.#fillGroup(0, MOVIES_EXTRA_COUNT, this.#popularContentGroupComponent, this.#popularMoviesPresenters, this.#moviesIndexesListSortedByComments);
+      this.#fillGroup(0, MOVIES_EXTRA_COUNT, this.#popularContentGroupComponent, this.#popularMoviesPresenters, this.#moviesIndexesSortedByComments);
     }
   };
 
@@ -313,17 +313,17 @@ export default class MoviesListPresenter{
   };
 
   #rerenderMostCommentedSection = () => {
-    const previousIndexes = this.#moviesIndexesListSortedByComments;
+    const previousIndexes = this.#moviesIndexesSortedByComments;
     if(this.movies.length){
       this.#initSortedByCommentsIndexes();
-      if(this.#moviesIndexesListSortedByComments[0].commentsCount === 0){
+      if(this.#moviesIndexesSortedByComments[0].commentsCount === 0){
         this.#popularContentGroupComponent.hideCaption();
         this.#popularMoviesPresenters.forEach((presenter) => presenter.destroyComponents());
         this.#popularMoviesPresenters.clear();
         return;
       }
       this.#popularContentGroupComponent.revealCaption();
-      this.#rerenderMostCommentedSectionMovies(previousIndexes, this.#moviesIndexesListSortedByComments);
+      this.#rerenderMostCommentedSectionMovies(previousIndexes, this.#moviesIndexesSortedByComments);
     }
   };
 
