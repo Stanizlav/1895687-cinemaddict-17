@@ -1,7 +1,7 @@
-import AbstractView from '../framework/view/abstract-view.js';
-import FilmsContainerView from './films-container-view.js';
-import CaptionView from './caption-view.js';
-import { StyleClass } from '../utils/constant-utils.js';
+import AbstractView from '../framework/view/abstract-view';
+import FilmsContainerView from './films-container-view';
+import CaptionView from './caption-view';
+import { StyleClass } from '../utils/constant-utils';
 
 const createContentGroupTemplate = () => '<section class="films-list"></section>';
 

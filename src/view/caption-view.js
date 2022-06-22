@@ -1,5 +1,5 @@
-import AbstractView from '../framework/view/abstract-view.js';
-import { StyleClass } from '../utils/constant-utils.js';
+import AbstractView from '../framework/view/abstract-view';
+import { StyleClass } from '../utils/constant-utils';
 
 const createCaptionTemplate = (text, isHidden) =>
   `<h2 class="films-list__title ${ isHidden ? StyleClass.HIDDEN : '' }">${text}</h2>`;

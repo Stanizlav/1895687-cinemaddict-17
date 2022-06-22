@@ -1,5 +1,5 @@
-import Observable from '../framework/observable.js';
-import { UpdateType } from '../utils/constant-utils.js';
+import Observable from '../framework/observable';
+import { UpdateType } from '../utils/constant-utils';
 
 export default class MoviesModel extends Observable{
   #moviesApiService = null;

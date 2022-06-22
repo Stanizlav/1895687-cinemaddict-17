@@ -1,5 +1,5 @@
-import AbstractView from '../framework/view/abstract-view.js';
-import { FilterType } from '../utils/constant-utils.js';
+import AbstractView from '../framework/view/abstract-view';
+import { FilterType } from '../utils/constant-utils';
 
 const getActivityClass = (setFilter, examinedFilter) =>
   setFilter === examinedFilter ? 'main-navigation__item--active' : '';

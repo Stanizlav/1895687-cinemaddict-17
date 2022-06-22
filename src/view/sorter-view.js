@@ -1,5 +1,5 @@
-import AbstractView from '../framework/view/abstract-view.js';
-import { SortType } from '../utils/constant-utils.js';
+import AbstractView from '../framework/view/abstract-view';
+import { SortType } from '../utils/constant-utils';
 
 const getActivityClass = (selectedType, examinedType) =>
   selectedType === examinedType ? 'sort__button--active' : '';

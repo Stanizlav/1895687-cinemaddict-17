@@ -1,25 +1,30 @@
-import { remove, render } from '../framework/render.js';
-import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
-import MoviePresenter from './movie-presenter.js';
-import SorterView from '../view/sorter-view.js';
+import { remove, render } from '../framework/render';
+import UiBlocker from '../framework/ui-blocker/ui-blocker';
+import MoviePresenter from './movie-presenter';
+import SorterView from '../view/sorter-view';
 import ShowMoreButtonView from '../view/show-more-button-view';
-import ContentGroupView from '../view/content-group-view.js';
-import ContentWrapperView from '../view/content-wrapper-view.js';
-import { NoMoviesCaption, SortType, UpdateType, UserAction } from '../utils/constant-utils.js';
-import { filterMovies } from '../utils/filter-utils.js';
-import { sortMovies } from '../utils/sort-utils.js';
-import LoadingView from '../view/loading-view.js';
+import ContentGroupView from '../view/content-group-view';
+import ContentWrapperView from '../view/content-wrapper-view';
+import { NoMoviesCaption, SortType, UpdateType, UserAction } from '../utils/constant-utils';
+import { filterMovies } from '../utils/filter-utils';
+import { sortMovies } from '../utils/sort-utils';
+import LoadingView from '../view/loading-view';
 
 const TimeLimit = {
   LOWER_LIMIT: 350,
   UPPER_LIMIT: 1000
 };
 
-const MOVIES_COUNT_PER_PORTION = 5;
-const MOVIES_EXTRA_COUNT = 2;
-const MAIN_GROUP_CAPTION = 'All movies. Upcoming';
-const TOP_GROUP_CAPTION = 'Top rated';
-const POPULAR_GROUP_CAPTION = 'Most commented';
+const GroupCaption = {
+  MAIN: 'All movies. Upcoming',
+  TOP: 'Top rated',
+  POPULAR: 'Most commented'
+};
+
+const MoviesCount = {
+  PORTION: 5,
+  EXTRA_GROUP: 2
+};
 
 export default class MoviesListPresenter{
   #sorterComponent = null;
@@ -192,7 +197,7 @@ export default class MoviesListPresenter{
   };
 
   #showMoreButtonClickHandler = () => {
-    this.#moviesShownCount += this.#fillGroup(this.#moviesShownCount, MOVIES_COUNT_PER_PORTION, this.#mainContentGroupComponent, this.#moviesPresenters);
+    this.#moviesShownCount += this.#fillGroup(this.#moviesShownCount, MoviesCount.PORTION, this.#mainContentGroupComponent, this.#moviesPresenters);
     if(this.#moviesShownCount === this.movies.length){
       this.#showMoreButtonComponent.hide();
     }
@@ -233,7 +238,7 @@ export default class MoviesListPresenter{
         this.#topContentGroupComponent.hideCaption();
         return;
       }
-      this.#fillGroup(0, MOVIES_EXTRA_COUNT, this.#topContentGroupComponent, this.#topMoviesPresenters, this.#moviesIndexesSortedByRate);
+      this.#fillGroup(0, MoviesCount.EXTRA_GROUP, this.#topContentGroupComponent, this.#topMoviesPresenters, this.#moviesIndexesSortedByRate);
     }
   };
 
@@ -251,7 +256,7 @@ export default class MoviesListPresenter{
         this.#popularContentGroupComponent.hideCaption();
         return;
       }
-      this.#fillGroup(0, MOVIES_EXTRA_COUNT, this.#popularContentGroupComponent, this.#popularMoviesPresenters, this.#moviesIndexesSortedByComments);
+      this.#fillGroup(0, MoviesCount.EXTRA_GROUP, this.#popularContentGroupComponent, this.#popularMoviesPresenters, this.#moviesIndexesSortedByComments);
     }
   };
 
@@ -263,12 +268,15 @@ export default class MoviesListPresenter{
   };
 
   #rerenderMostCommentedSectionMovies = (previousIndexes, currentIndexes) => {
-    if(this.movies.length < 2){
+    const LOW_MOVIES_LIMIT = 2;
+    const HIGH_METHOD_LIMIT = 2;
+
+    if(this.movies.length < LOW_MOVIES_LIMIT){
       return;
     }
 
-    const currentRenderedIndexes = currentIndexes.slice(0, MOVIES_EXTRA_COUNT);
-    const prevRenderedIndexes = previousIndexes.slice(0, MOVIES_EXTRA_COUNT);
+    const currentRenderedIndexes = currentIndexes.slice(0, MoviesCount.EXTRA_GROUP);
+    const prevRenderedIndexes = previousIndexes.slice(0, MoviesCount.EXTRA_GROUP);
     const restPreviousRenderedIndexes = prevRenderedIndexes.slice();
 
     for(const prevElement of prevRenderedIndexes){
@@ -278,12 +286,12 @@ export default class MoviesListPresenter{
         restPreviousRenderedIndexes.splice(index, 1);
       }
     }
-    // it's good for two elements , if there are more then two then improvements are needed
-    if(currentRenderedIndexes.length>2){
+
+    if(currentRenderedIndexes.length > HIGH_METHOD_LIMIT){
       throw new Error('Improvements must be done');
     }
 
-    if(restPreviousRenderedIndexes.length === MOVIES_EXTRA_COUNT){
+    if(restPreviousRenderedIndexes.length === MoviesCount.EXTRA_GROUP){
       if(!this.#popularMoviesPresenters.size){
         for(const currentElement of currentRenderedIndexes){
           this.#renderMovie(currentElement.index, this.#popularContentGroupComponent.filmsContainer, this.#popularMoviesPresenters);
@@ -327,18 +335,18 @@ export default class MoviesListPresenter{
     }
   };
 
-  #renderComponents = (commonMoviesCount = MOVIES_COUNT_PER_PORTION, sortType = SortType.DEFAULT) => {
+  #renderComponents = (commonMoviesCount = MoviesCount.PORTION, sortType = SortType.DEFAULT) => {
     if(this.#isLoading){
       this.#renderLoading();
       return;
     }
-    this.#mainContentGroupComponent = new ContentGroupView(MAIN_GROUP_CAPTION, false, true);
+    this.#mainContentGroupComponent = new ContentGroupView(GroupCaption.MAIN, false, true);
     render(this.#mainContentGroupComponent, this.#contentWrapperComponent.element);
     if(this.movies.length){
       this.#renderSorter(sortType);
       this.#moviesShownCount += this.#fillGroup(0, commonMoviesCount, this.#mainContentGroupComponent, this.#moviesPresenters);
-      this.#topContentGroupComponent = new ContentGroupView(TOP_GROUP_CAPTION, true);
-      this.#popularContentGroupComponent = new ContentGroupView(POPULAR_GROUP_CAPTION, true);
+      this.#topContentGroupComponent = new ContentGroupView(GroupCaption.TOP, true);
+      this.#popularContentGroupComponent = new ContentGroupView(GroupCaption.POPULAR, true);
       this.#renderTopRatedSection();
       this.#renderMostCommentedSection();
       if(this.movies.length > this.#moviesShownCount){

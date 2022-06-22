@@ -1,10 +1,10 @@
-import MoviesListPresenter from './presenter/movies-list-presenter.js';
-import FilterPresenter from './presenter/filter-presenter.js';
-import MoviesModel from './model/movies-model.js';
-import FilterModel from './model/filter-model.js';
-import MoviesApiService from './services/movies-api-service.js';
-import { AUTHORIZATION, END_POINT } from './utils/constant-utils.js';
-import ProfilePresenter from './presenter/profile-presenter.js';
+import MoviesListPresenter from './presenter/movies-list-presenter';
+import FilterPresenter from './presenter/filter-presenter';
+import MoviesModel from './model/movies-model';
+import FilterModel from './model/filter-model';
+import MoviesApiService from './services/movies-api-service';
+import { AUTHORIZATION, END_POINT } from './utils/constant-utils';
+import ProfilePresenter from './presenter/profile-presenter';
 
 
 const siteHeaderElement = document.body.querySelector('header');

@@ -1,5 +1,5 @@
-import AbstractView from '../framework/view/abstract-view.js';
-import { convertDuration, getYear } from '../utils/date-utils.js';
+import AbstractView from '../framework/view/abstract-view';
+import { convertDuration, getYear } from '../utils/date-utils';
 
 const DESCRIPTION_LIMIT = 140;
 
