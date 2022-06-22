@@ -12,10 +12,6 @@ export default class CommentsModel extends Observable{
   }
 
   get comments () { return this.#comments; }
-  set comments (newComments) {
-    this.#comments = [...newComments];
-    this._notify(UpdateType.MINOR);
-  }
 
   init = async () => {
     try{

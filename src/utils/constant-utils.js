@@ -62,7 +62,21 @@ const ShownInfo = {
   SAVING : 'Saving...'
 };
 
-const AUTHORIZATION = 'Basic 1jflkawksjmdfl9';
+const ProfileStatus = {
+  NOBODY: 'Nobody',
+  NOVICE: 'Novice',
+  FAN: 'Fan',
+  MOVIE_BUFF: 'Movie Buff'
+};
+
+const ProfileStatusLimit = {
+  NOBODY: 1,
+  NOVICE: 11,
+  FAN: 21,
+  MOVIE_BUFF: Infinity
+};
+
+const AUTHORIZATION = 'Basic 1jflkawksjmdfl963';
 const END_POINT = 'https://17.ecmascript.pages.academy/cinemaddict';
 
 export{
@@ -76,6 +90,8 @@ export{
   KeyCode,
   Method,
   ShownInfo,
+  ProfileStatus,
+  ProfileStatusLimit,
   AUTHORIZATION,
   END_POINT
 };

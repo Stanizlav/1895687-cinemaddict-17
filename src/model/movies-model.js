@@ -11,10 +11,6 @@ export default class MoviesModel extends Observable{
   }
 
   get movies () { return this.#movies; }
-  set movies (otherMovies) {
-    this.#movies = [...otherMovies];
-    this._notify(UpdateType.MINOR);
-  }
 
   init = async () => {
     try{
