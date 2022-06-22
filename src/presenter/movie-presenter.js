@@ -1,8 +1,8 @@
-import { remove, render, RenderPosition, replace } from '../framework/render.js';
-import CommentsModel from '../model/comments-model.js';
-import { FilterType, KeyCode, StyleClass, UpdateType, UserAction } from '../utils/constant-utils.js';
-import FilmCardView from '../view/film-card-view.js';
-import FilmInfoView from '../view/film-info-view.js';
+import { remove, render, RenderPosition, replace } from '../framework/render';
+import CommentsModel from '../model/comments-model';
+import { FilterType, KeyCode, StyleClass, UpdateType, UserAction } from '../utils/constant-utils';
+import FilmCardView from '../view/film-card-view';
+import FilmInfoView from '../view/film-info-view';
 
 export default class MoviePresenter{
   #containerElement = null;

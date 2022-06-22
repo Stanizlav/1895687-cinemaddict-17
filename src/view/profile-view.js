@@ -1,5 +1,5 @@
-import AbstractView from '../framework/view/abstract-view.js';
-import { ProfileStatus, StyleClass } from '../utils/constant-utils.js';
+import AbstractView from '../framework/view/abstract-view';
+import { ProfileStatus, StyleClass } from '../utils/constant-utils';
 
 const createProfileTemplate = (profileStatus) => {
   const invisibilityClass = profileStatus === ProfileStatus.NOBODY ? StyleClass.HIDDEN : '';

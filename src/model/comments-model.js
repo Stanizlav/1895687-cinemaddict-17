@@ -1,6 +1,6 @@
-import Observable from '../framework/observable.js';
-import CommentsApiService from '../services/comments-api-service.js';
-import { AUTHORIZATION, END_POINT, UpdateType } from '../utils/constant-utils.js';
+import Observable from '../framework/observable';
+import CommentsApiService from '../services/comments-api-service';
+import { AUTHORIZATION, END_POINT, UpdateType } from '../utils/constant-utils';
 
 export default class CommentsModel extends Observable{
   #comments = [];

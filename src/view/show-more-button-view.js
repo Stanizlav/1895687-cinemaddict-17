@@ -1,5 +1,5 @@
-import AbstractView from '../framework/view/abstract-view.js';
-import { StyleClass } from '../utils/constant-utils.js';
+import AbstractView from '../framework/view/abstract-view';
+import { StyleClass } from '../utils/constant-utils';
 
 const createShowMoreButtonTemplate = () => '<button class="films-list__show-more">Show more</button>';
 

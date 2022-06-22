@@ -1,6 +1,6 @@
-import { convertDuration, getCommentDate, getFormatedDate, getHumanisedDate } from '../utils/date-utils.js';
-import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { EmotionType, ShownInfo } from '../utils/constant-utils.js';
+import { convertDuration, getCommentDate, getFormatedDate, getHumanisedDate } from '../utils/date-utils';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view';
+import { EmotionType, ShownInfo } from '../utils/constant-utils';
 import he from 'he';
 
 const createGenreTemplate = (genre) => `<span class="film-details__genre">${ genre }</span>`;
