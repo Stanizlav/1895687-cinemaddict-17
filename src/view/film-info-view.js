@@ -12,9 +12,9 @@ const getCheckedAttribute = (setEmotion, examinedEmotion) => setEmotion === exam
 const createEmojiTemplate = (emotion) => emotion ?
   `<img src="images/emoji/${ emotion }.png" alt="emoji-${ emotion }" width="55" height="55">` : '';
 
-const createCommentTemplate = (commentObject, inabilityAttribute, isDeleting, deletableCommentId) => {
+const createCommentTemplate = (extendedComment, inabilityAttribute, isDeleting, deletableCommentId) => {
 
-  const { id, author, comment, date, emotion } = commentObject;
+  const { id, author, comment, date, emotion } = extendedComment;
   const formatedDate = getCommentDate(date);
   const humanisedDate = getHumanisedDate(date);
   const emoji = createEmojiTemplate(emotion);

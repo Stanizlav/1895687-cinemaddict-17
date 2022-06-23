@@ -9,6 +9,9 @@ import { NoMoviesCaption, SortType, UpdateType, UserAction } from '../utils/cons
 import { filterMovies } from '../utils/filter-utils';
 import { sortMovies } from '../utils/sort-utils';
 import LoadingView from '../view/loading-view';
+import FooterStatisticsView from '../view/footer-statistics-view';
+import ErrorMessageView from '../view/error-message-view';
+import { getErrorMessage } from '../utils/error-utils';
 
 const TimeLimit = {
   LOWER_LIMIT: 350,
@@ -34,13 +37,17 @@ export default class MoviesListPresenter{
   #contentWrapperComponent = new ContentWrapperView();
   #showMoreButtonComponent = null;
   #loadingComponent = new LoadingView();
+  #errorMessageComponent = null;
+  #statisticsComponent = null;
   #moviesPresenters = new Map();
   #topMoviesPresenters = new Map();
   #popularMoviesPresenters = new Map();
+  #openedExtensivePresenter = null;
   #uiBlocker = new UiBlocker(TimeLimit.LOWER_LIMIT, TimeLimit.UPPER_LIMIT);
 
   #moviesShownCount = 0;
-  #containerElement = null;
+  #mainContainerElement = null;
+  #statisticsContainerElement = null;
   #moviesModel = null;
   #filterModel = null;
   #moviesIndexesSortedByRate = null;
@@ -48,10 +55,11 @@ export default class MoviesListPresenter{
   #isLoading = true;
   #sortType = SortType.DEFAULT;
 
-  constructor(containerElement, moviesModel, filterModel){
-    this.#containerElement = containerElement;
+  constructor(mainContainerElement, moviesModel, filterModel, statisticsContainerElement){
+    this.#mainContainerElement = mainContainerElement;
     this.#moviesModel = moviesModel;
     this.#filterModel = filterModel;
+    this.#statisticsContainerElement = statisticsContainerElement;
     this.#moviesModel.addObserver(this.#modelEventHandler);
     this.#filterModel.addObserver(this.#modelEventHandler);
   }
@@ -96,14 +104,21 @@ export default class MoviesListPresenter{
     }
   };
 
+  #renderStatisticsComponent = () => {
+    this.#statisticsComponent = new FooterStatisticsView(this.#moviesModel.movies.length);
+    render(this.#statisticsComponent, this.#statisticsContainerElement);
+  };
+
   #modelEventHandler = (updateType, update) => {
     switch (updateType){
       case UpdateType.PATCH :
         this.#rerenderMostCommentedSection();
         this.#reinitMoviePresenters(update);
+        this.#reinitOpenedExtensive(update);
         break;
       case UpdateType.MINOR :
-        this.#rerenderComponents();
+        this.#rerenderComponents(false);
+        this.#reinitOpenedExtensive(update);
         break;
       case UpdateType.MAJOR :
         this.#clearComponents();
@@ -113,9 +128,21 @@ export default class MoviesListPresenter{
         this.#isLoading = false;
         remove(this.#loadingComponent);
         this.init();
+        this.#renderStatisticsComponent();
+        break;
+      case UpdateType.FAILURE :
+        this.#isLoading = false;
+        remove(this.#loadingComponent);
+        this.#renderErrorMessage(update);
         break;
       default:
         throw new Error('Unknown update type!');
+    }
+  };
+
+  #reinitOpenedExtensive = (movie) => {
+    if(this.#openedExtensivePresenter){
+      this.#openedExtensivePresenter.reinitExtensive(movie);
     }
   };
 
@@ -141,6 +168,9 @@ export default class MoviesListPresenter{
     if(this.#popularMoviesPresenters.has(movie.id)){
       this.#popularMoviesPresenters.get(movie.id).setUpdating();
     }
+    if(this.#openedExtensivePresenter){
+      this.#openedExtensivePresenter.setUpdating(movie);
+    }
   };
 
   #setMoviePresentersAborting = (movie) => {
@@ -153,17 +183,31 @@ export default class MoviesListPresenter{
     if(this.#popularMoviesPresenters.has(movie.id)){
       this.#popularMoviesPresenters.get(movie.id).setAborting();
     }
+    if(this.#openedExtensivePresenter){
+      this.#openedExtensivePresenter.setAborting(movie);
+    }
   };
 
   #prepareOpeningExtensive = () => {
-    this.#moviesPresenters.forEach((presenter) => presenter.collapseExtensive());
-    this.#topMoviesPresenters.forEach((presenter) => presenter.collapseExtensive());
-    this.#popularMoviesPresenters.forEach((presenter) => presenter.collapseExtensive());
+    if(this.#openedExtensivePresenter){
+      this.#openedExtensivePresenter.collapseExtensive();
+    }
+  };
+
+  #saveOpenedExtensivePresenter = (moviePresenter) => {
+    this.#openedExtensivePresenter = moviePresenter;
   };
 
   #renderMovie = (index, container, presenters, isHeader = false) => {
     const movie = this.movies[index];
-    const moviePresenter = new MoviePresenter(container, this.#viewActionHandler, this.#prepareOpeningExtensive, this.#toggleInterfaceActivity, this.filter);
+    const moviePresenter = new MoviePresenter(
+      container,
+      this.#viewActionHandler,
+      this.#prepareOpeningExtensive,
+      this.#saveOpenedExtensivePresenter,
+      this.#toggleInterfaceActivity,
+      this.filter
+    );
     moviePresenter.init(movie, isHeader);
     presenters.set(movie.id, moviePresenter);
   };
@@ -184,13 +228,13 @@ export default class MoviesListPresenter{
     this.#unblockInterface();
   };
 
-  #fillGroup = (start, count, contentGroup, presenters, maskArray) => {
+  #fillGroup = (start, count, contentGroup, presenters, mask) => {
     const limit = start + count < this.movies.length ?
       start + count :
       this.movies.length;
 
     for(let i = start; i < limit; i++){
-      const index = maskArray ? maskArray[i].index : i;
+      const index = mask ? mask[i].index : i;
       this.#renderMovie(index, contentGroup.filmsContainer, presenters);
     }
     return limit - start;
@@ -214,18 +258,18 @@ export default class MoviesListPresenter{
       return;
     }
     this.#sortType = sortType;
-    this.#rerenderComponents();
+    this.#rerenderComponents(false);
   };
 
   #renderSorter = (sortType) => {
     this.#sortType = sortType;
     this.#sorterComponent = new SorterView(this.#sortType);
     this.#sorterComponent.setSortTypeSelectionHandler(this.#sortTypeSelectionHandler);
-    render(this.#sorterComponent, this.#containerElement);
+    render(this.#sorterComponent, this.#mainContainerElement);
   };
 
   #renderLoading = () => {
-    render(this.#loadingComponent,this.#containerElement);
+    render(this.#loadingComponent,this.#mainContainerElement);
   };
 
   #renderTopRatedSection = () => {
@@ -262,7 +306,7 @@ export default class MoviesListPresenter{
 
   #deleteCardViaPresenter = (presenters, movieId) => {
     if(presenters.has(movieId)){
-      presenters.get(movieId).destroyComponents();
+      presenters.get(movieId).destroyComponents(false);
       presenters.delete(movieId);
     }
   };
@@ -303,11 +347,8 @@ export default class MoviesListPresenter{
         return;
       }
       const firstMovieIndex = restPreviousRenderedIndexes[0].index;
-      const secondMovieIndex = restPreviousRenderedIndexes[1].index;
-      const isFirstExtansiveOpen = this.#popularMoviesPresenters.get(this.movies[firstMovieIndex].id).isExtensiveOpen;
-      const indexToRerender = isFirstExtansiveOpen ? secondMovieIndex : firstMovieIndex;
-      this.#deleteCardViaPresenter(this.#popularMoviesPresenters, this.movies[indexToRerender].id);
-      this.#renderMovie(indexToRerender, this.#popularContentGroupComponent.filmsContainer, this.#popularMoviesPresenters, isFirstExtansiveOpen);
+      this.#deleteCardViaPresenter(this.#popularMoviesPresenters, this.movies[firstMovieIndex].id);
+      this.#renderMovie(firstMovieIndex, this.#popularContentGroupComponent.filmsContainer, this.#popularMoviesPresenters);
       return;
     }
 
@@ -326,7 +367,7 @@ export default class MoviesListPresenter{
       this.#initSortedByCommentsIndexes();
       if(this.#moviesIndexesSortedByComments[0].commentsCount === 0){
         this.#popularContentGroupComponent.hideCaption();
-        this.#popularMoviesPresenters.forEach((presenter) => presenter.destroyComponents());
+        this.#popularMoviesPresenters.forEach((presenter) => presenter.destroyComponents(false));
         this.#popularMoviesPresenters.clear();
         return;
       }
@@ -360,15 +401,22 @@ export default class MoviesListPresenter{
       this.#mainContentGroupComponent.caption = caption;
       this.#mainContentGroupComponent.revealCaption();
     }
-    render(this.#contentWrapperComponent, this.#containerElement);
+    render(this.#contentWrapperComponent, this.#mainContainerElement);
   };
 
-  #clearComponents = () => {
-    this.#moviesPresenters.forEach((presenter) => presenter.destroyComponents());
+  #renderErrorMessage = (error) => {
+    const message = getErrorMessage(error);
+    this.#errorMessageComponent = new ErrorMessageView(message);
+    render(this.#errorMessageComponent, this.#mainContainerElement);
+
+  };
+
+  #clearComponents = (isDestroyingExtensive = true) => {
+    this.#moviesPresenters.forEach((presenter) => presenter.destroyComponents(isDestroyingExtensive));
     this.#moviesPresenters.clear();
-    this.#topMoviesPresenters.forEach((presenter) => presenter.destroyComponents());
+    this.#topMoviesPresenters.forEach((presenter) => presenter.destroyComponents(isDestroyingExtensive));
     this.#topMoviesPresenters.clear();
-    this.#popularMoviesPresenters.forEach((presenter) => presenter.destroyComponents());
+    this.#popularMoviesPresenters.forEach((presenter) => presenter.destroyComponents(isDestroyingExtensive));
     this.#popularMoviesPresenters.clear();
     this.#contentWrapperComponent.getEmpty();
     remove(this.#sorterComponent);
@@ -376,10 +424,12 @@ export default class MoviesListPresenter{
     this.#moviesShownCount = 0;
   };
 
-  #rerenderComponents = () => {
-    const commonMoviesShownCount = this.#moviesShownCount;
+  #rerenderComponents = (isDestroyingExtensive = true) => {
+    const commonMoviesShownCount = this.#moviesShownCount % MoviesCount.PORTION === 0 ?
+      this.#moviesShownCount :
+      this.#moviesShownCount + 1;
     const savedSortType = this.#sortType;
-    this.#clearComponents();
+    this.#clearComponents(isDestroyingExtensive);
     this.#renderComponents(commonMoviesShownCount, savedSortType);
   };
 }
