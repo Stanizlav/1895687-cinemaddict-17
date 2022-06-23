@@ -8,6 +8,7 @@ export default class MoviePresenter{
   #containerElement = null;
   #changeData = null;
   #prepareOpeningExtensive = null;
+  #saveOpenedExtensivePresenter = null;
   #toggleInterfaceActivity = null;
 
   #movie = null;
@@ -15,18 +16,15 @@ export default class MoviePresenter{
   #filmInfoComponent = null;
   #filter = null;
   #commentsModel = null;
-  #isExtensiveOpen = false;
 
-
-  constructor(containerElement, changeData, prepareOpeningExtensive, toggleInterfaceActivity, filter){
+  constructor(containerElement, changeData, prepareOpeningExtensive, saveOpenedExtensivePresenter, toggleInterfaceActivity, filter){
     this.#containerElement = containerElement;
     this.#changeData = changeData;
     this.#prepareOpeningExtensive = prepareOpeningExtensive;
+    this.#saveOpenedExtensivePresenter = saveOpenedExtensivePresenter;
     this.#toggleInterfaceActivity = toggleInterfaceActivity;
     this.#filter = filter;
   }
-
-  get isExtensiveOpen() { return  this.#isExtensiveOpen; }
 
   init = (movie, isHeader = false) => {
     this.#movie = movie;
@@ -44,10 +42,14 @@ export default class MoviePresenter{
     if(this.#containerElement.contains(previousFilmCardComponent.element)){
       replace(this.#filmCardComponent, previousFilmCardComponent);
     }
-    if(this.#filmInfoComponent && this.#filmInfoComponent.isOpen){
+    remove(previousFilmCardComponent);
+  };
+
+  reinitExtensive = (movie) => {
+    if(this.#movie.id === movie.id){
+      this.#movie = movie;
       this.#rerenderFilmInfo();
     }
-    remove(previousFilmCardComponent);
   };
 
   #setDeleting = (commentId) => {
@@ -103,7 +105,7 @@ export default class MoviePresenter{
     document.body.append(this.#filmInfoComponent.element);
     document.body.classList.add(StyleClass.HIDING_SCROLL_CLASS);
     document.addEventListener('keydown', this.#keyDownHandler);
-    this.#isExtensiveOpen = true;
+    this.#saveOpenedExtensivePresenter(this);
   };
 
   #updateFilmInfoSavingScroll = (callback) => {
@@ -130,12 +132,12 @@ export default class MoviePresenter{
   };
 
   collapseExtensive = () => {
-    this.#isExtensiveOpen = false;
     if(this.#filmInfoComponent && this.#filmInfoComponent.isOpen){
       this.#filmInfoComponent.resetComponent(this.#movie, this.#commentsModel.comments);
       remove(this.#filmInfoComponent);
       document.body.classList.remove(StyleClass.HIDING_SCROLL_CLASS);
       document.removeEventListener('keydown', this.#keyDownHandler);
+      this.#saveOpenedExtensivePresenter(null);
     }
   };
 
@@ -187,8 +189,8 @@ export default class MoviePresenter{
     }
   };
 
-  destroyComponents = () => {
-    if(this.#filmInfoComponent && this.#filmInfoComponent.isOpen){
+  destroyComponents = (isDestroyingExtensive = true) => {
+    if(isDestroyingExtensive && this.#filmInfoComponent && this.#filmInfoComponent.isOpen){
       document.body.classList.remove(StyleClass.HIDING_SCROLL_CLASS);
       document.removeEventListener('keydown', this.#keyDownHandler);
       remove(this.#filmInfoComponent);
