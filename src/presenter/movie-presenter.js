@@ -52,7 +52,7 @@ export default class MoviePresenter{
     }
   };
 
-  #setDeleting = (commentId) => {
+  #setCommentDeleting = (commentId) => {
     this.#toggleInterfaceActivity(true);
     this.#updateFilmInfoSavingScroll( ()=>
       this.#filmInfoComponent.updateElement({
@@ -63,7 +63,7 @@ export default class MoviePresenter{
     );
   };
 
-  #setAdding = () => {
+  #setCommentAdding = () => {
     this.#toggleInterfaceActivity(true);
     this.#updateFilmInfoSavingScroll( () =>
       this.#filmInfoComponent.updateElement({
@@ -73,7 +73,19 @@ export default class MoviePresenter{
     );
   };
 
-  setUpdating = () => {
+  #setCommentAdded = () => {
+    this.#updateFilmInfoSavingScroll( () =>
+      this.#filmInfoComponent.updateElement({
+        setEmotion:'',
+        typedComment:''
+      })
+    );
+  };
+
+  setUpdating = (movie = null) => {
+    if(movie && movie.id !== this.#movie.id){
+      return;
+    }
     if(this.#filmInfoComponent){
       this.#updateFilmInfoSavingScroll( () =>
         this.#filmInfoComponent.updateElement({
@@ -84,11 +96,16 @@ export default class MoviePresenter{
 
   };
 
-  setAborting = () => {
+  setAborting = (movie = null) => {
+    if(movie && movie.id !== this.#movie.id){
+      return;
+    }
     if(this.#filmInfoComponent && this.#filmInfoComponent.isOpen){
       this.#filmInfoComponent.shakeControlButtons(this.#resetFilmInfoState);
     }
-    this.#filmCardComponent.shake();
+    if(this.#filmCardComponent){
+      this.#filmCardComponent.shake();
+    }
   };
 
   #initComments = () => {
@@ -116,7 +133,14 @@ export default class MoviePresenter{
 
   #rerenderFilmInfo = () => {
     this.#updateFilmInfoSavingScroll( () =>
-      this.#filmInfoComponent.resetComponent(this.#movie, this.#commentsModel.comments)
+      this.#filmInfoComponent.updateElement({
+        movie: this.#movie,
+        commentsList: this.#commentsModel.comments,
+        isDisabled: false,
+        isDeleting: false,
+        deletableCommentId : undefined,
+        isUploading: false
+      })
     );
   };
 
@@ -234,7 +258,7 @@ export default class MoviePresenter{
   };
 
   #commentDeletionHandler = async (commentData) => {
-    this.#setDeleting(commentData.commentId);
+    this.#setCommentDeleting(commentData.commentId);
     try{
       await this.#commentsModel.removeComment(UpdateType.EDIT_COMMENTS, commentData.commentId, commentData.movie);
     }
@@ -245,9 +269,10 @@ export default class MoviePresenter{
   };
 
   #commentAdditionHandler = async (commentData) => {
-    this.#setAdding();
+    this.#setCommentAdding();
     try{
       await this.#commentsModel.addComment(UpdateType.EDIT_COMMENTS, commentData.comment, commentData.movie);
+      this.#setCommentAdded();
     }
     catch(error){
       this.#filmInfoComponent.shakeForm(this.#resetFilmInfoState);

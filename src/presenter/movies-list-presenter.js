@@ -150,6 +150,9 @@ export default class MoviesListPresenter{
     if(this.#popularMoviesPresenters.has(movie.id)){
       this.#popularMoviesPresenters.get(movie.id).setUpdating();
     }
+    if(this.#openedExtensivePresenter){
+      this.#openedExtensivePresenter.setUpdating(movie);
+    }
   };
 
   #setMoviePresentersAborting = (movie) => {
@@ -161,6 +164,9 @@ export default class MoviesListPresenter{
     }
     if(this.#popularMoviesPresenters.has(movie.id)){
       this.#popularMoviesPresenters.get(movie.id).setAborting();
+    }
+    if(this.#openedExtensivePresenter){
+      this.#openedExtensivePresenter.setAborting(movie);
     }
   };
 
