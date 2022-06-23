@@ -9,6 +9,7 @@ import { NoMoviesCaption, SortType, UpdateType, UserAction } from '../utils/cons
 import { filterMovies } from '../utils/filter-utils';
 import { sortMovies } from '../utils/sort-utils';
 import LoadingView from '../view/loading-view';
+import FooterStatisticsView from '../view/footer-statistics-view';
 
 const TimeLimit = {
   LOWER_LIMIT: 350,
@@ -34,6 +35,7 @@ export default class MoviesListPresenter{
   #contentWrapperComponent = new ContentWrapperView();
   #showMoreButtonComponent = null;
   #loadingComponent = new LoadingView();
+  #statisticsComponent = null;
   #moviesPresenters = new Map();
   #topMoviesPresenters = new Map();
   #popularMoviesPresenters = new Map();
@@ -41,7 +43,8 @@ export default class MoviesListPresenter{
   #uiBlocker = new UiBlocker(TimeLimit.LOWER_LIMIT, TimeLimit.UPPER_LIMIT);
 
   #moviesShownCount = 0;
-  #containerElement = null;
+  #mainContainerElement = null;
+  #statisticsContainerElement = null;
   #moviesModel = null;
   #filterModel = null;
   #moviesIndexesSortedByRate = null;
@@ -49,10 +52,11 @@ export default class MoviesListPresenter{
   #isLoading = true;
   #sortType = SortType.DEFAULT;
 
-  constructor(containerElement, moviesModel, filterModel){
-    this.#containerElement = containerElement;
+  constructor(mainContainerElement, moviesModel, filterModel, statisticsContainerElement){
+    this.#mainContainerElement = mainContainerElement;
     this.#moviesModel = moviesModel;
     this.#filterModel = filterModel;
+    this.#statisticsContainerElement = statisticsContainerElement;
     this.#moviesModel.addObserver(this.#modelEventHandler);
     this.#filterModel.addObserver(this.#modelEventHandler);
   }
@@ -97,6 +101,11 @@ export default class MoviesListPresenter{
     }
   };
 
+  #renderStatisticsComponent = () => {
+    this.#statisticsComponent = new FooterStatisticsView(this.#moviesModel.movies.length);
+    render(this.#statisticsComponent, this.#statisticsContainerElement);
+  };
+
   #modelEventHandler = (updateType, update) => {
     switch (updateType){
       case UpdateType.PATCH :
@@ -116,6 +125,7 @@ export default class MoviesListPresenter{
         this.#isLoading = false;
         remove(this.#loadingComponent);
         this.init();
+        this.#renderStatisticsComponent();
         break;
       default:
         throw new Error('Unknown update type!');
@@ -247,11 +257,11 @@ export default class MoviesListPresenter{
     this.#sortType = sortType;
     this.#sorterComponent = new SorterView(this.#sortType);
     this.#sorterComponent.setSortTypeSelectionHandler(this.#sortTypeSelectionHandler);
-    render(this.#sorterComponent, this.#containerElement);
+    render(this.#sorterComponent, this.#mainContainerElement);
   };
 
   #renderLoading = () => {
-    render(this.#loadingComponent,this.#containerElement);
+    render(this.#loadingComponent,this.#mainContainerElement);
   };
 
   #renderTopRatedSection = () => {
@@ -383,7 +393,7 @@ export default class MoviesListPresenter{
       this.#mainContentGroupComponent.caption = caption;
       this.#mainContentGroupComponent.revealCaption();
     }
-    render(this.#contentWrapperComponent, this.#containerElement);
+    render(this.#contentWrapperComponent, this.#mainContainerElement);
   };
 
   #clearComponents = (isDestroyingExtensive = true) => {

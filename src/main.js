@@ -9,13 +9,15 @@ import ProfilePresenter from './presenter/profile-presenter';
 
 const siteHeaderElement = document.body.querySelector('header');
 const siteMainElement = document.body.querySelector('main');
+const siteFooterElement = document.body.querySelector('footer');
+
 const moviesApiService = new MoviesApiService(END_POINT, AUTHORIZATION);
 const moviesModel = new MoviesModel(moviesApiService);
 
 const filterModel = new FilterModel();
 const filmsFilterPresenter = new FilterPresenter(siteMainElement, filterModel, moviesModel);
 const profilePresenter = new ProfilePresenter(siteHeaderElement, moviesModel);
-const filmsListPresenter = new MoviesListPresenter(siteMainElement, moviesModel, filterModel);
+const filmsListPresenter = new MoviesListPresenter(siteMainElement, moviesModel, filterModel, siteFooterElement);
 
 profilePresenter.init();
 filmsFilterPresenter.init();

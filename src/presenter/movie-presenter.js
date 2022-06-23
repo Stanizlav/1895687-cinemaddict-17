@@ -208,16 +208,14 @@ export default class MoviePresenter{
       evt.preventDefault();
       this.collapseExtensive();
     }
-    if(evt.ctrlKey && evt.keyCode === KeyCode.ENTER){
+    if((evt.ctrlKey || evt.metaKey) && evt.keyCode === KeyCode.ENTER){
       this.#filmInfoComponent.submitForm();
     }
   };
 
   destroyComponents = (isDestroyingExtensive = true) => {
-    if(isDestroyingExtensive && this.#filmInfoComponent && this.#filmInfoComponent.isOpen){
-      document.body.classList.remove(StyleClass.HIDING_SCROLL_CLASS);
-      document.removeEventListener('keydown', this.#keyDownHandler);
-      remove(this.#filmInfoComponent);
+    if(isDestroyingExtensive){
+      this.collapseExtensive();
     }
     remove(this.#filmCardComponent);
   };
