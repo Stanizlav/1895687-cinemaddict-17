@@ -1,5 +1,6 @@
 const UpdateType = {
   INIT : 'INIT',
+  FAILURE : 'FAILURE',
   PATCH : 'PATCH',
   MINOR : 'MINOR',
   MAJOR : 'MAJOR',

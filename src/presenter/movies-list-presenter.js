@@ -10,6 +10,8 @@ import { filterMovies } from '../utils/filter-utils';
 import { sortMovies } from '../utils/sort-utils';
 import LoadingView from '../view/loading-view';
 import FooterStatisticsView from '../view/footer-statistics-view';
+import ErrorMessageView from '../view/error-message-view';
+import { getErrorMessage } from '../utils/error-utils';
 
 const TimeLimit = {
   LOWER_LIMIT: 350,
@@ -35,6 +37,7 @@ export default class MoviesListPresenter{
   #contentWrapperComponent = new ContentWrapperView();
   #showMoreButtonComponent = null;
   #loadingComponent = new LoadingView();
+  #errorMessageComponent = null;
   #statisticsComponent = null;
   #moviesPresenters = new Map();
   #topMoviesPresenters = new Map();
@@ -126,6 +129,11 @@ export default class MoviesListPresenter{
         remove(this.#loadingComponent);
         this.init();
         this.#renderStatisticsComponent();
+        break;
+      case UpdateType.FAILURE :
+        this.#isLoading = false;
+        remove(this.#loadingComponent);
+        this.#renderErrorMessage(update);
         break;
       default:
         throw new Error('Unknown update type!');
@@ -394,6 +402,13 @@ export default class MoviesListPresenter{
       this.#mainContentGroupComponent.revealCaption();
     }
     render(this.#contentWrapperComponent, this.#mainContainerElement);
+  };
+
+  #renderErrorMessage = (error) => {
+    const message = getErrorMessage(error);
+    this.#errorMessageComponent = new ErrorMessageView(message);
+    render(this.#errorMessageComponent, this.#mainContainerElement);
+
   };
 
   #clearComponents = (isDestroyingExtensive = true) => {
